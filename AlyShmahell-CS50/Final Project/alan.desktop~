@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=alan
+#GenericName=Terminal
+Comment=alan AI
+Exec=xterm -T '/media/aly/DataBank/ego/projects/alan-turring/bin/alan' -e /usr/bin/cb_console_runner "/media/aly/DataBank/ego/projects/alan-turring/bin/alan"
+Terminal=false
+Type=Application
+#Encoding=UTF-8
+Icon=/media/aly/DataBank/ego/projects/alan-turring/alan.png
+Categories=Utility;
+X-Desktop-File-Install-Version=0.21
+

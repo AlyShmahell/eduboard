@@ -1,0 +1,4 @@
+#This is the makefile used by the make utility to compile the alan-turring project
+alan-turring:
+	g++ turring.cpp -o ./bin/turring
+	g++ ./src/alan.cpp -o ./bin/alan

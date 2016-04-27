@@ -1,0 +1,204 @@
+/*
+Copyright 2015 ALY SHMAHELL
+
+ This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include<stdio.h>
+#include<iostream>
+#include<fstream>
+#include<string>
+#include<queue>
+#include "bigint_255.hpp"
+using namespace std;
+
+//this is where data is stored
+long long int cell_range[5000];
+//this is where a sigle command is temporarily stored
+char command;
+//this is where commands are stored
+char line[5000];
+//this is the data pointer
+int ptr=0;
+//this is the command indx
+int indx=0;
+//this is a stop signal for the while loop
+int stop=0;
+//this is where every line is stored prior to interpretation
+queue <char> mainq;
+
+//loop level
+int loop_level=0;
+
+
+void interpret()
+{
+
+    if(command==',')
+    {
+        cin>>cell_range[ptr];
+        indx++;
+
+    }
+    if(command=='.')
+    {
+        cout<<cell_range[ptr]<<" ";
+        indx++;
+    }
+    if(command=='>')
+    {
+        ++ptr;
+        indx++;
+    }
+    if(command=='<')
+    {
+        --ptr;
+        indx++;
+    }
+    if(command=='+')
+    {
+        ++cell_range[ptr];
+        indx++;
+    }
+    if(command=='-')
+    {
+        --cell_range[ptr];
+        indx++;
+    }
+    if(command=='[')
+    {
+
+        loop_level++;
+        queue <char> tempq;
+        while(!mainq.empty())
+        {
+
+            command = mainq.front();
+            mainq.pop();
+
+            if(command=='[')
+            {
+                interpret();
+            }
+
+            if(command==']'&&loop_level>1)
+                break;
+
+            else
+            {
+                tempq.push(command);
+                interpret();
+            }
+        }
+
+        while(cell_range[ptr]&&!tempq.empty())
+        {
+            command=tempq.front();
+            tempq.pop();
+            tempq.push(command);
+            interpret();
+        }
+        loop_level--;
+    }
+
+    if(command==']')
+    {
+        indx++;
+    }
+}
+
+void FreeStyle()
+{
+
+    while(1)
+    {
+        cout<<"\n~ ";
+        scanf("%s",&line);
+        for(int i=0; line[i]!='\0'; i++)
+        {
+            mainq.push(line[i]);
+        }
+        while(!mainq.empty())
+        {
+            command=mainq.front();
+            mainq.pop();
+            interpret();
+        }
+    }
+}
+void FileInterpret(char* argz)
+{
+    if(argz)
+    {
+        ifstream in(argz);
+        if(!in)
+        {
+            cout<<"No such file\n Reverting back to FreeStyle\n";
+            FreeStyle();
+        }
+        else
+        {
+        cout<<"\n~ ";
+            int i=0;
+            while(in)
+            {
+                in.get(line[i]);
+                cout<<line[i];
+                mainq.push(line[i]);
+                i++;
+            }
+            line[i]='\0';
+        }
+        while(!mainq.empty())
+        {
+            command=mainq.front();
+            mainq.pop();
+            interpret();
+        }
+        cout<<"\n#######################################################\n"
+            <<"               ~~End of Interpretation~~              #\n"
+            <<"#######################################################\n";
+    }
+}
+
+int main(int argc, char** argv)
+{
+    cout<<"\n#######################################################\n"
+    <<"The Turring Interpreter 0.1 Alpha                     #\n"
+    <<"Copyright 2015 ALY SHMAHELL                           #\n"
+    <<"Licensed under LGPL 3.0                               #\n"
+    <<"                                                      #\n"
+    <<"Usage :                                               #\n"
+    <<"        File Interpretation : ./Turring filename.b    #\n"
+    <<"        FreeStyle : ./Turring                         #\n"
+    <<"                                                      #\n"
+    <<"   Turring is a Tape Programming Language similar to  #\n"
+    <<"                     Brainf*ck & P"<<'"'<<"                   #\n"
+    <<"                                                      #\n"
+    <<"Commands :                                            #\n"
+    <<"             ,     Input decimal at current pointer   #\n"
+    <<"             .     Output decimal at current pointer  #\n"
+    <<"             >     Increase Pointer                   #\n"
+    <<"             <     Decrease Pointer                   #\n"
+    <<"             +     Increase Value at pointer          #\n"
+    <<"             -     Decrease Value at Pointer          #\n"
+    <<"             [     Start Loop                         #\n"
+    <<"             ]     End Loop                           #\n"
+    <<"                                                      #\n"
+    <<"#######################################################\n";
+    if(argv[1])
+    FileInterpret(argv[1]);
+    else
+    FreeStyle();
+}
