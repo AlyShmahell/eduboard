@@ -1,2 +1,2 @@
 # Algorithms
-includes descriptions, code and documentation to algorithms either: created, modified, implemented or explained by me.
+Simplified-CKY (SCKY) Algorithm, Modified by Aly Shmahell.
