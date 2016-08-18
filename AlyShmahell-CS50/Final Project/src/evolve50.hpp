@@ -1,6 +1,6 @@
 /**
-Copyright © 2015 Aly Shmahell
-*/
+ * Copyright (C) 2015-2016 Aly Shmahell
+ */
 
 #include <iostream>
 #include <sstream>
