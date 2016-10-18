@@ -1,0 +1,18 @@
+    @font-face
+    {
+        font-family: 'Glyphicons';
+        src: url(bootstrap/fonts/glyphicons-halflings-regular.woff);
+    }
+     body {
+      background-color: #ffffff;
+      font-family: 'Glyphicons';
+      text-align: center;
+    }
+    .row
+    {
+        margin:20px;
+    }
+    input
+    {
+        text-align:center;
+    }
