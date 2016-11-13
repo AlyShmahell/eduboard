@@ -1,4 +1,5 @@
 import sys
+sys.path.insert(0, './VrepPythonAPI')
 import vrep
 
 vrep.simxFinish(-1) # just in case, close all opened connections
