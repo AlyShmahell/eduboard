@@ -18,7 +18,7 @@ def initFunction():
 	clientID=vrep.simxStart('127.0.0.1',19999,True,True,5000,5) 
 	if clientID!=-1:
 		print ('Connected to remote API server')
-		actuateFunction(4.0, 4.0)
+		actuateFunction(8.0, 8.0)
 	else:
 		sys.exit('Connection Failed!')
 
