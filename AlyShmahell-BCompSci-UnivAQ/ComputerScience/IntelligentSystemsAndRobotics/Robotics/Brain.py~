@@ -32,7 +32,7 @@ def thinkFunction():
 # the main function
 if __name__ == "__main__":
 	try:
-		thinkFunction()
+		brain()
 	except KeyboardInterrupt:
 		finishFunction()
 		

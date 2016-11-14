@@ -21,7 +21,7 @@ def initFunction():
 	else:
 		sys.exit('Connection Failed!')
 
-# action function: sends speed information to the motors
+# actuation function: sends speed information to the motors
 def actuateFunction(leftSpeed, rightSpeed):
 	# connect to motors
 	errorCode,leftHandle=vrep.simxGetObjectHandle(clientID,'dr12_leftJoint_',vrep.simx_opmode_oneshot_wait)
