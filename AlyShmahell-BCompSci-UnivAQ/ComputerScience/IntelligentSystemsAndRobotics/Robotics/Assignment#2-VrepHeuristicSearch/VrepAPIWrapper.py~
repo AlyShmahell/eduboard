@@ -33,11 +33,11 @@ def actuateFunction(leftSpeed, rightSpeed):
 # sensory function: returns collision information from the bumper
 def senseFunction():
 	# connect to sensor
-	errorCode,sensorHandle=vrep.simxGetObjectHandle(clientID,'Proximity_sensor',vrep.simx_opmode_streaming+0)
-	errorCode,sensorHandle0=vrep.simxGetObjectHandle(clientID,'Proximity_sensor0',vrep.simx_opmode_streaming+0)
+	errorCode,sensorHandle=vrep.simxGetObjectHandle(clientID,'Proximity_sensor',vrep.simx_opmode_streaming+9999)
+	errorCode,sensorHandle0=vrep.simxGetObjectHandle(clientID,'Proximity_sensor0',vrep.simx_opmode_streaming+9999)
 	# read sensor data
-	returnCode, detectionState, detectedPoint, detectedObjectHandle, detectedSurfaceNormalVector=vrep.simxReadProximitySensor(clientID, sensorHandle, vrep.simx_opmode_streaming+0)
-	returnCode, wallState, detectedPoint0, detectedObjectHandle0, detectedSurfaceNormalVector0=vrep.simxReadProximitySensor(clientID, sensorHandle0, vrep.simx_opmode_streaming+0)
+	returnCode, detectionState, detectedPoint, detectedObjectHandle, detectedSurfaceNormalVector=vrep.simxReadProximitySensor(clientID, sensorHandle, vrep.simx_opmode_streaming+9999)
+	returnCode, wallState, detectedPoint0, detectedObjectHandle0, detectedSurfaceNormalVector0=vrep.simxReadProximitySensor(clientID, sensorHandle0, vrep.simx_opmode_streaming+9999)
 	return detectionState, detectedPoint, detectedObjectHandle, wallState
 
 # when the program ends, inform of a successful operation

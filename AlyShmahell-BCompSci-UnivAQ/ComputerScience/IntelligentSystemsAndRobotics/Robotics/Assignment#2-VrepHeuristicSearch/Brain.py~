@@ -21,9 +21,9 @@ def thinkFunction():
 				currPointDifference[0]=currPointDifference[0]-detectedPoint[0]
 				currPointDifference[1]=currPointDifference[1]-detectedPoint[1]
 				if currPointDifference[0]<currPointDifference[1]:
-					actuateFunction(1,0)
-				elif currPointDifference[0]>=currPointDifference[1]:
 					actuateFunction(0,1)
+				elif currPointDifference[0]>=currPointDifference[1]:
+					actuateFunction(1,0)
 			currPointDifference=[0,0,0]
 			moveState=True
 		else:
