@@ -8,10 +8,10 @@ however, if you're on Ubuntu 14.04, you might find it a bit tedious, since there
 now I have updated the official tutorial to work with Ubuntu 14.04 as following:  
 
 install the required libraries:  
-
+```bash
 sudo apt-get install python-pip libftdi-dev cmake python-empy python-nose python-setuptools build-essential  
 sudo pip install wstool catkin-pkg
-
+```
 now compile from source as follows:  
 ```bash
 mkdir ~/kobuki_core  
