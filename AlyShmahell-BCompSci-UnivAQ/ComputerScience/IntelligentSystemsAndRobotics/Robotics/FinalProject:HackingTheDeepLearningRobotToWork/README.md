@@ -13,16 +13,17 @@ sudo apt-get install python-pip libftdi-dev cmake python-empy python-nose python
 sudo pip install wstool catkin-pkg
 
 now compile from source as follows:  
-
+```bash
 mkdir ~/kobuki_core  
 wstool init -j5 ~/kobuki_core/src https://raw.github.com/yujinrobot/kobuki_core/hydro/kobuki_core.rosinstall  
 cd ~/kobuki_core  
 export PATH=~/kobuki_core/src/catkin/bin/:${PATH}  
 catkin_make  
 cd build; make install  
-
+```
 finally, test your installation, by connecting to kokubi base, then running the following commands on your ubuntu computer:  
-
+```bash
 export LD_LIBRARY_PATH=~/kobuki_core/install/lib  
 ~/kobuki_core/install/lib/kobuki_driver/demo_kobuki_simple_loop  
+```
 
