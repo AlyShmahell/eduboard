@@ -23,7 +23,7 @@ cd build; make install
 ```
 finally, test your installation, by connecting to kokubi base, then running the following commands on your ubuntu computer:  
 ```bash
-export LD_LIBRARY_PATH=~/kobuki_core/install/lib  
-~/kobuki_core/install/lib/kobuki_driver/demo_kobuki_simple_loop  
+export LD_LIBRARY_PATH=/opt/kobuki_core/install/lib  
+./opt/kobuki_core/install/lib/kobuki_driver/demo_kobuki_simple_loop  
 ```
 
