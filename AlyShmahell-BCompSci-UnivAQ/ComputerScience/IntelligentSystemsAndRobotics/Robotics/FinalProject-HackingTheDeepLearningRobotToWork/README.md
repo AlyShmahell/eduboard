@@ -26,6 +26,7 @@ finally, test your installation, by connecting to kokubi base, then running the 
 ```bash
 echo "export LD_LIBRARY_PATH=/opt/kobuki_core/install/lib" >> ~/.bashrc
 source ~/.bashrc  
+sudo su  
 /opt/kobuki_core/install/lib/kobuki_driver/demo_kobuki_initialisation  
 ```
 this should make an initialization sound come from within kobuki.  
