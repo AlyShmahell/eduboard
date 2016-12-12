@@ -46,9 +46,9 @@ sudo sh -c '. /etc/lsb-release && echo "deb http://packages.ros.org.ros.informat
 ```bash
 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116  
 ```
-3) install opengl to avoid conflicts:  
+3) install opengl and ecl to avoid conflicts:  
 ```bash
-sudo apt-get install libgl1-mesa-dev-lts-utopic  
+sudo apt-get install libgl1-mesa-dev-lts-utopic ecl  
 ```
 4) update the package list:  
 ```bash
@@ -69,7 +69,7 @@ apt-cache search ros-indigo
 ```
 8) install the kobuki package:  
 ```bash
-sudo apt-get install ros-indigo-kobuki  
+sudo apt-get install ros-indigo-kobuki ros-indigo-kobuki-core  
 ```
 9) setup environment variables:  
 ```bash
@@ -79,8 +79,24 @@ source ~/.bashrc
 10) setup rosinstall:  
 sudo apt-get install python-rosinstall  
 
+11) Set udev Rule:  
+```bash
+rosrun kobuki_ftdi create_udev_rules  
+```
+logout  
+unplug the usb cable  
+login  
+replug the usb cable  
 ---
 
-now, let's try a testing package for kobuki, called "random walker":  
-[instructions for "random walker" can be found on the official page](http://wiki.ros.org/kobuki_random_walker)  
+now, let's try a testing package for kobuki, called "keyboard operation":  
+in a new terminal launch kobuki node:  
+```bash
+roslaunch kobuki_node minimal.launch  
+```
+in yet another new terminal as well, launch the keyboard operation module:  
+```bash
+roslaunch kobuki_keyop keyop.launch  
+```
+###### Warning: a small press can make the kobuki base gain a relatively insane speed
 
