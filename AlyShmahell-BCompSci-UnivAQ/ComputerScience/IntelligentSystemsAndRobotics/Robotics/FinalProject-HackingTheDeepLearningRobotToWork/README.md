@@ -1,5 +1,28 @@
 ## Hacking the Deep Learning Robot (to work)
 
+### Requirements Agreement Contract 
+this is a contract between the client (Prof. Giovanni De Gasperis), and the contractor (Deep Learning Robot Team), which asserts that the contractor is to provide proper software for this following robot under terms and requirements mentioned later in the contract.  
+the robot provided and properiated by the client is consisting of the following combined pieces of technology:  
+Kobuki Mobile Base  
+nvidia tegra k1:  
+Pre-installed:  
+Google TensorFlow  
+Caffe  
+Torch  
+CUDA  
+cuDNN  
+Ubuntu 14.04.1  
+Speaker/microphone Bluetooth  
+Asus Xtion Pro 3D Depth Camera  
+### Software Requirements:  
+the software development cycle is consistant of 3 stages, which are summarized roughly as the following:  
+Phase 1: testing the robot's basic functionality, in order to learn how to interface with all the components and make them work together.  
+Phase 2: achieving basic robot mobility, and achieving sensory input.  
+Phase 3: integration of sensory information and motor functions then design of the decision making process.  
+
+
+
+
 #### minimal kokubi installation
 in order to control the kokubi base from within the laptop, one only needs the minimal kokubi installation, as portrayed and explained on this page:  
 http://yujinrobot.github.io/kobuki/doxygen/enInstallationLinuxGuide.html    
@@ -87,6 +110,7 @@ logout
 unplug the usb cable  
 login  
 replug the usb cable  
+
 ---
 
 now, let's try a testing package for kobuki, called "keyboard operation":  
