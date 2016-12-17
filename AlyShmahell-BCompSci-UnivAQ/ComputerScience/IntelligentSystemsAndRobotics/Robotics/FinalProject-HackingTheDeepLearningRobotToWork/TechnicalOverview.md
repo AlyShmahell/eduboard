@@ -1,42 +1,21 @@
 ## Hacking the Deep Learning Robot (to work)
 
-### Requirements Agreement Contract 
-this is a contract between the client (Prof. Giovanni De Gasperis), and the contractor (Deep Learning Robot Team), which asserts that the contractor is to provide proper software for this following robot under terms and requirements mentioned later in the contract.  
-the robot provided and properiated by the client is consisting of the following combined pieces of technology:  
-Kobuki Mobile Base  
-nvidia tegra k1:  
-Pre-installed:  
-Google TensorFlow  
-Caffe  
-Torch  
-CUDA  
-cuDNN  
-Ubuntu 14.04.1  
-Speaker/microphone Bluetooth  
-Asus Xtion Pro 3D Depth Camera  
-### Software Requirements:  
-the software development cycle is consistant of 3 stages, which are summarized roughly as the following:  
-Phase 1: testing the robot's basic functionality, in order to learn how to interface with all the components and make them work together.  
-Phase 2: achieving basic robot mobility, and achieving sensory input.  
-Phase 3: integration of sensory information and motor functions then design of the decision making process.  
+### Technical Overview
 
-
-
-
-#### minimal kokubi installation
-in order to control the kokubi base from within the laptop, one only needs the minimal kokubi installation, as portrayed and explained on this page:  
+#### Minimal Kokubi Installation
+In order to control the kokubi base from within the laptop, one only needs the minimal kokubi installation, as portrayed and explained on this page:  
 http://yujinrobot.github.io/kobuki/doxygen/enInstallationLinuxGuide.html    
 
-however, if you're on Ubuntu 14.04, you might find it a bit tedious, since there are some things missing in your operating system.  
+However, if you're on Ubuntu 14.04, you might find it a bit tedious, since there are some things missing in your operating system.  
 
-now I have updated the official tutorial to work with Ubuntu 14.04 as following:  
+Now I have updated the official tutorial to work with Ubuntu 14.04 as following:  
 
-install the required libraries:  
+1) install the required libraries:  
 ```bash
 sudo apt-get install python-pip libftdi-dev cmake python-empy python-nose python-setuptools build-essential  
 sudo pip install wstool catkin-pkg
 ```
-now compile from source as follows:  
+2) now compile from source as follows:  
 ```bash
 mkdir /opt/kobuki_core  
 wstool init -j5 /opt/kobuki_core/src https://raw.github.com/yujinrobot/kobuki_core/hydro/kobuki_core.rosinstall  
@@ -45,7 +24,7 @@ export PATH=/opt/kobuki_core/src/catkin/bin/:${PATH}
 catkin_make  
 cd build; make install  
 ```
-finally, test your installation, by connecting to kokubi base, then running the following commands on your ubuntu computer:  
+3) finally, test your installation, by connecting to kokubi base, then running the following commands on your ubuntu computer:  
 ```bash
 echo "export LD_LIBRARY_PATH=/opt/kobuki_core/install/lib" >> ~/.bashrc
 source ~/.bashrc  
@@ -57,10 +36,10 @@ this has worked for me, however, when I try to run the simple loop test, the rob
 ```bash
 /opt/kobuki_core/install/lib/kobuki_driver/demo_kobuki_simple_loop  
 ```
-#### ROS indigo on Ubuntu 14.04
-now, my second try was installing ROS indigo, which also had some hoops which i had to overcome:  
+#### ROS Indigo on Ubuntu 14.04
+Now, my second try was installing ROS indigo, which also had some hoops which i had to overcome:  
 first of all, the "ros-indigo-desktop-full" did not install at all, too many dependency conflicts as of December 2016.  
-instead, I went on installing it piece by piece:  
+Instead, I went on installing it piece by piece:  
 1) add the package source list:  
 ```bash
 sudo sh -c '. /etc/lsb-release && echo "deb http://packages.ros.org.ros.informatik.uni-freiburg.de/ros/ubuntu $DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'  
@@ -123,4 +102,3 @@ in yet another new terminal as well, launch the keyboard operation module:
 roslaunch kobuki_keyop keyop.launch  
 ```
 ###### Warning: a small press can make the kobuki base gain a relatively insane speed
-
