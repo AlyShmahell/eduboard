@@ -1,0 +1,5 @@
+CREATE TABLE `users` (
+`userid` INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`username` VARCHAR(65) NOT NULL ,
+`password` VARCHAR(767) NOT NULL
+);
