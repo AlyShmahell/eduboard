@@ -3,26 +3,9 @@
 include "header.php";
 
 if(!empty($_POST['username']) && !empty($_POST['password']))
-   {
-		$username = mysql_real_escape_string($_POST['username']);
-		$password = hash('sha512',mysql_real_escape_string($_POST['password']));
-		$checklogin = mysql_query("SELECT * FROM users WHERE username='".$username."' AND password = '".$password."'");
-		if(mysql_num_rows($checklogin)==1)
-                   {
-			$row = mysql_fetch_array($checklogin);
-			$_SESSION['loggedin'] = 1;
-			$_SESSION['username'] = $username;
-			echo "<h1> success </h1>";
-			echo "<p> Redirecting to Member Area </p>";
-			echo '<script type="text/javascript"> window.location = "session.php" </script>';
-		   }
-		else
-                   {
-			echo "<h1> Error </h1>";
-			echo "<p> Wrong Credentials! </p>";
-                        echo $password;
-		   }
-  }
+	{
+	 logIn($_POST['username'],$_POST['password']);	
+	}
 else
   {
     ?>

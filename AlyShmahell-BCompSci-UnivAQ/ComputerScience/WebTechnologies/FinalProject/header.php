@@ -1,4 +1,5 @@
 <?php include "db_connect.inc.php";?>
+<?php include "functions.php";?>
 <!DOCTYPE HTML>
 <html>
   <head>
