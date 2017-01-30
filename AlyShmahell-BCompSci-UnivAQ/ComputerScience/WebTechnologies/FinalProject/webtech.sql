@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS admins (
-  username  VARCHAR(65)  NOT NULL UNIQUE,
+  username  VARCHAR(65)  NOT NULL UNIQUE PRIMARY KEY,
   pass_word VARCHAR(767) NOT NULL,
   FOREIGN KEY fk_username(username) REFERENCES groups (username)
     ON UPDATE RESTRICT
