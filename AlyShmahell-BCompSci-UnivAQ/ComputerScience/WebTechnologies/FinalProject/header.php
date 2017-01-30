@@ -1,5 +1,6 @@
 <?php include "db_connect.inc.php"; ?>
 <?php include "functions.php"; ?>
+
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -38,6 +39,10 @@
                 background-color:white;
                 color:#428bca;
                }
+          div {
+               border: solid black;
+               margin: 10px;
+              }
 </style>
 </head>
 <body>
