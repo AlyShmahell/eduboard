@@ -51,7 +51,7 @@ if (!function_exists('register')) {
             } else {
                 $registerquery = mysql_query("INSERT INTO users (username,pass_word) VALUES('" . $username . "','" . $password . "')");
                 if ($registerquery) {
-                    mysql_query("CREATE TABLE $user_db (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, firstname VARCHAR(30) NOT NULL,lastname VARCHAR(30) NOT NULL,email VARCHAR(50),reg_date TIMESTAMP)");
+                    mysql_query("CREATE TABLE $user_db (assetname VARCHAR(300) NOT NULL UNIQUE PRIMARY KEY, assetcoordinates VARCHAR(300) NOT NULL UNIQUE)");
                     echo "<h1>Success 1</h1>";
                     echo "<p>Your account was successfully created. Please <a href=\"index.php\">click here to login</a>.</p>";
                 } else {
@@ -64,7 +64,7 @@ if (!function_exists('register')) {
             mysql_query("INSERT INTO groups (username) VALUES('" . $username . "')");
             $registerquery = mysql_query("INSERT INTO users (username,pass_word) VALUES('" . $username . "','" . $password . "')");
             if ($registerquery) {
-                mysql_query("CREATE TABLE $user_db (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, firstname VARCHAR(30) NOT NULL,lastname VARCHAR(30) NOT NULL,email VARCHAR(50),reg_date TIMESTAMP)");
+                mysql_query("CREATE TABLE $user_db (assetname VARCHAR(300) NOT NULL UNIQUE PRIMARY KEY, assetcoordinates VARCHAR(300) NOT NULL UNIQUE)");
                 echo "<h1>Success 2</h1>";
                 echo "<p>Your account was successfully created. Please <a href=\"index.php\">click here to login</a>.</p>";
             } else {
@@ -77,28 +77,27 @@ if (!function_exists('register')) {
 
 if (!function_exists('populate_user_data')) {
     function populate_user_data() {
-             echo "<br/>";
+             echo "here are the assets to which you have claim for!<br/>";
              $user_db = $_SESSION['user_db'];
              $user_data = mysql_query("SELECT * FROM $user_db");
-             $user_data = mysql_fetch_array($user_data);
-             if(mysql_num_rows($user_data)==0)
-                        echo "You have no assets yet!";
-             foreach($row as $value) {
-                        echo $value;
+             if(!mysql_num_rows($user_data))
+                 echo "You have no assets yet!";       
+             while($user_data_array = mysql_fetch_array($user_data)) {
+                        echo $user_data_array[0]." ";
+                        echo $user_data_array[1]."<br/>";
   }
  }
 }
 if (!function_exists('insert_user_data')) {
     function insert_user_data() {
-             echo "<br/>";
+             echo "Asset Claim Form, please name the asset you wish to claim and specify its location below: <br/>";
              $user_db = $_SESSION['user_db'];
-             $user_data = mysql_query("SELECT * FROM $user_db");
-             $user_data = mysql_fetch_array($user_data);
-             if(mysql_num_rows($user_data)==0)
-                        echo "You have no assets yet!";
-             foreach($row as $value) {
-                        echo $value;
-  }
+             if(!empty($_POST['assetname'])&&!empty($_POST['assetcoordinates']))
+                 $user_data = mysql_query("INSERT INTO $user_db(assetname,assetcoordinates) VALUES('".$_POST['assetname']."', '".$_POST['assetcoordinates']."')");
+             if(mysql_num_rows($user_data)==1) {
+                        echo '<script>function(){addmsg("Asset Claimed!")}';
+                        echo '<script type="text/javascript"> window.location = "session.php" </script>';
+  }                        
  }
 }
 ?>
