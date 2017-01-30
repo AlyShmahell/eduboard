@@ -1,0 +1,22 @@
+@font-face {
+		font-family: 'spaceship';
+		src: url("./fonts/Spaceship-Bullet.ttf");
+}
+		
+@font-face {
+		font-family: 'glyphicons-halflings-regular';
+		src: url("./fonts/glyphicons-halflings-regular.ttf");
+}
+		
+body {
+	background-color: #d7eef4;
+	font-family: 'spaceship';
+        text-align:center;
+}
+
+.container {
+        width: 120%;
+	background-color: #d7eef4;
+	font-family: 'spaceship';
+        text-align:center;
+}
