@@ -83,16 +83,16 @@ if (!function_exists('populate_user_data')) {
         $user_data = mysql_query("SELECT * FROM $user_db");
         if (!mysql_num_rows($user_data))
             echo "You have no assets yet!";
+        echo "<table><tr><th>Asset Name</th><th>Asset Location</th></tr>";
         while ($user_data_array = mysql_fetch_array($user_data)) {
-            echo $user_data_array[0] . " ";
-            echo $user_data_array[1] . "<br/>";
+            echo "<tr><td>".$user_data_array[0]."</td><td>".$user_data_array[1]."</td></tr>";
         }
+        echo "</table>";
     }
 }
 if (!function_exists('insert_user_data')) {
     function insert_user_data()
     {
-        echo "Asset Claim Form, please name the asset you wish to claim and specify its location below: <br/>";
         $user_db = $_SESSION['user_db'];
         if (!empty($_POST['assetname']) && !empty($_POST['assetcoordinates']))
             $user_data_inserted = mysql_query("INSERT INTO $user_db(assetname,assetcoordinates) VALUES('" . $_POST['assetname'] . "', '" . $_POST['assetcoordinates'] . "')");
@@ -118,14 +118,18 @@ if (!function_exists('populate_admin_area')) {
         if (!mysql_num_rows($inspection_rights))
             echo "No inspection rights granted yet";
         else while ($inspection_rights_array = mysql_fetch_array($inspection_rights)) {
+            echo "<h4>".$inspection_rights_array[0]."</h4>";
             $inspection_granted_data = mysql_query("SELECT * FROM " . $inspection_rights_array[1]);
             if (!mysql_num_rows($inspection_granted_data))
                 echo "No Assets claimed by this company";
-            else while ($inspection_granted_data_array = mysql_fetch_array($inspection_granted_data)) {
-                echo $inspection_granted_data_array[0] . " ";
-                echo $inspection_granted_data_array[1] . "<br/>";
+            else {
+                echo "<table><tr><th>Asset Name</th><th>Asset Location</th></tr>";
+                while ($inspection_granted_data_array = mysql_fetch_array($inspection_granted_data)) {
+                    echo "<tr><td>".$inspection_granted_data_array[0]."</td><td>".$inspection_granted_data_array[1]."</td></tr>";
+                }
+                echo "</table>";
             }
-              mysql_query("DELETE FROM " . $_SESSION['username']);
+            mysql_query("DELETE FROM " . $_SESSION['username'] . " WHERE database_token != '0'");
         }
     }
 }
@@ -134,21 +138,21 @@ if (!function_exists('inspect_user_data')) {
     function inspect_user_data()
     {
         if(isset($_POST['usertoinspect']))
-         {
-          $username = $_SESSION['username'];
-        $username = mysql_real_escape_string($username);
-        echo $username . " is a chicken <br/>";
-        $usertoinspect = $_POST['usertoinspect'];
-        $usertoinspect = mysql_real_escape_string($usertoinspect);
-        echo $usertoinspect . " is a chicken too <br/>";
-        if (!empty($username) && !empty($usertoinspect)) {
-            $inspection_requested = mysql_query("INSERT INTO webtech.$username(corporation,database_token) VALUES('$usertoinspect','0')");
-            if ($inspection_requested)
-                echo "user " . $_POST['usertoinspect'] . " was informed of inspection and asked to comply";
-            else
-                echo "operation failed " . $_POST['usertoinspect'] . "  was not inserted into ".$_SESSION['username'];
+        {
+            $username = $_SESSION['username'];
+            $username = mysql_real_escape_string($username);
+            echo $username . " is a chicken <br/>";
+            $usertoinspect = $_POST['usertoinspect'];
+            $usertoinspect = mysql_real_escape_string($usertoinspect);
+            echo $usertoinspect . " is a chicken too <br/>";
+            if (!empty($username) && !empty($usertoinspect)) {
+                $inspection_requested = mysql_query("INSERT INTO webtech.$username(corporation,database_token) VALUES('$usertoinspect','0')");
+                if ($inspection_requested)
+                    echo "user " . $_POST['usertoinspect'] . " was informed of inspection and asked to comply";
+                else
+                    echo "operation failed " . $_POST['usertoinspect'] . "  was not inserted into ".$_SESSION['username'];
+            }
         }
-      }
     }
 }
 
@@ -163,7 +167,7 @@ if (!function_exists('respond_to_inspection')) {
         else while ($inspection_admins_onebyone = mysql_fetch_array($inspection_admins)) {
             $inspection_requests = mysql_query("SELECT * FROM ".$inspection_admins_onebyone[0]." WHERE corporation = '" . $_SESSION['username'] . "'");
             if (!mysql_num_rows($inspection_requests))
-                echo "No inspections! Oh joy! :D";
+                echo "No inspections! Oh joy! *_* </br></br>";
             else while ($respond_to_request = mysql_fetch_array($inspection_requests)) {
                 if ($respond_to_request[1] == '0')
                     $inspection_granted = mysql_query("UPDATE " . $inspection_admins_onebyone[0] . " SET database_token = '" . $_SESSION['user_db'] . "' WHERE corporation = '" . $_SESSION['username'] . "'");

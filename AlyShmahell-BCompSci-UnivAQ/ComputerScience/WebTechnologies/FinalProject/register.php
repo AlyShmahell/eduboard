@@ -4,12 +4,12 @@
 if (!empty($_POST['username']) && !empty($_POST['password'])) {
     register($_POST['username'], $_POST['password']);
 } else {
-    ?>
-    <h1>Register</h1>
-    <div>
+?>
+<h1>Register</h1>
+<div>
     <?php echo "If you already have your corporation on record, please";?> <a href="login.php">login</a>.</p>
-    </div>
-    <div>
+</div>
+<div>
     <p>if not, please enter your details below to register.</p>
     <form method="post" action="register.php" name="registerform" id="registerform">
         <fieldset>
@@ -18,9 +18,9 @@ if (!empty($_POST['username']) && !empty($_POST['password'])) {
             <input type="submit" name="register" id="register" value="Register"/>
         </fieldset>
     </form>
-    </div>
-    <?php
-}
+</div>
+<?php
+       }
 ?>
 </div>
 </body>
