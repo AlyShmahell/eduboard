@@ -5,8 +5,11 @@ if (!function_exists('login')) {
     {
         $username = mysql_real_escape_string($username);
         $username = preg_replace('/\s+/', '', $username);
-        $password = hash('sha512', mysql_real_escape_string($password));
+        $password = mysql_real_escape_string($password);
         $password = preg_replace('/\s+/', '', $password);
+        $user_db = hash('sha1', $username . $password);
+        $user_db = "a" . $user_db;
+        $password = hash('sha512', $password);
         $checkLoginInUsers = mysql_query("SELECT * FROM users WHERE username='" . $username . "' AND pass_word = '" . $password . "'");
         $checkLoginInAdmins = mysql_query("SELECT * FROM admins WHERE username='" . $username . "' AND pass_word = '" . $password . "'");
         if (mysql_num_rows($checkLoginInUsers) == 1) {
@@ -14,7 +17,7 @@ if (!function_exists('login')) {
             $_SESSION['loggedin'] = 1;
             $_SESSION['username'] = $row[0];
             $_SESSION['usertype'] = "user";
-            $_SESSION['user_db'] = hash('sha256', $username + $password);
+            $_SESSION['user_db'] = $user_db;
             echo "<h1> success </h1>";
             echo "<p> Redirecting to Member Area </p>";
             echo '<script type="text/javascript"> window.location = "session.php" </script>';
@@ -38,9 +41,12 @@ if (!function_exists('register')) {
     {
         $username = mysql_real_escape_string($username);
         $username = preg_replace('/\s+/', '', $username);
-        $password = hash('sha512', mysql_real_escape_string($password));
+        $password = mysql_real_escape_string($password);
         $password = preg_replace('/\s+/', '', $password);
-        $user_db = hash('sha256', $username + $password);
+        $user_db = hash('sha1', $username . $password);
+        $user_db = "a" . $user_db;
+        $password = hash('sha512', $password);
+
         $checkusername = mysql_query("SELECT * FROM groups WHERE username='" . $username . "'");
         if (mysql_num_rows($checkusername) == 1) {
             $checkusernameInAdmins = mysql_query("SELECT * FROM admins WHERE username='" . $username . "'");
@@ -51,8 +57,8 @@ if (!function_exists('register')) {
             } else {
                 $registerquery = mysql_query("INSERT INTO users (username,pass_word) VALUES('" . $username . "','" . $password . "')");
                 if ($registerquery) {
-                    mysql_query("CREATE TABLE $user_db (assetname VARCHAR(300) NOT NULL UNIQUE PRIMARY KEY, assetcoordinates VARCHAR(300) NOT NULL UNIQUE)");
-                    echo "<h1>Success 1</h1>";
+                    mysql_query("CREATE TABLE". $user_db ."(assetname VARCHAR(300) NOT NULL UNIQUE PRIMARY KEY, assetcoordinates VARCHAR(300) NOT NULL UNIQUE)");
+                    echo "<h3>Success</h3>";
                     echo "<p>Your account was successfully created. Please <a href=\"index.php\">click here to login</a>.</p>";
                 } else {
                     echo "<h1>Error</h1>";
@@ -65,7 +71,7 @@ if (!function_exists('register')) {
             $registerquery = mysql_query("INSERT INTO users (username,pass_word) VALUES('" . $username . "','" . $password . "')");
             if ($registerquery) {
                 mysql_query("CREATE TABLE $user_db (assetname VARCHAR(300) NOT NULL UNIQUE PRIMARY KEY, assetcoordinates VARCHAR(300) NOT NULL UNIQUE)");
-                echo "<h1>Success 2</h1>";
+                echo "<h3>Success</h3>";
                 echo "<p>Your account was successfully created. Please <a href=\"index.php\">click here to login</a>.</p>";
             } else {
                 echo "<h1>Error</h1>";

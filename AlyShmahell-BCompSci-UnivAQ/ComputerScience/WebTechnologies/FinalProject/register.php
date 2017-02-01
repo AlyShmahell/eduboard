@@ -8,7 +8,8 @@ if (!empty($_POST['username']) && !empty($_POST['password'])) {
 <h1>Federal Corporation Claim Registry</h1>
 <h2>Register</h2>
 <div>
-    <?php echo "If you already have your corporation on record, please";?> <a href="login.php">login</a>.</p>
+    <p><?php echo "If you already have your corporation on record, please";?> <a href="login.php">login</a>.</p>
+    <p><?php echo $_POST['username'] . $_POST['password'] ?></p>
 </div>
 <div>
     <p>if not, please enter your details below to register.</p>

@@ -24,7 +24,7 @@ if($_SESSION['usertype']=="user")  {insert_user_data(); ?>
 </html>
 <?php } else {inspect_user_data(); ?>
 <div>
-    <h4> Corporation Ispection Form </h4>
+    <h4> Corporation Inspection Form </h4>
     <form method="post" name="inspectuserdata">
         <label>corporation name</label><input type="text" name="usertoinspect"><br/>
         <input type="submit">
