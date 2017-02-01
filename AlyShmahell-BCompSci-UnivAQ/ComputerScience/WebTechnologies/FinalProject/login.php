@@ -6,7 +6,8 @@ if (!empty($_POST['username']) && !empty($_POST['password'])) {
     logIn($_POST['username'], $_POST['password']);
 } else {
     ?>
-    <h1>Member Login</h1>
+    <h1>Federal Corporation Claim Registry</h1>
+    <h2>Member Login</h2>
     <p>you can either login below, or <a href="register.php">register</a>.</p>
     <form method="post" name="loginform" id="loginform">
             <label>Username: &nbsp</label><input type="text" name="username"/><br/>

@@ -4,29 +4,29 @@
 <!DOCTYPE HTML>
 <html>
     <head>
-        <title>WebTech</title>
+        <title>FCCR</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />
-        <link href="css/bootstrap-responsive.css" rel="stylesheet" type="text/css" />
-        <link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon" />
-        <link rel="icon" href="./images/favicon.ico" type="image/x-icon" />
+        <link href="bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" />
+        <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet" type="text/css" />
+
         <style>
             @font-face {
                 font-family: 'spaceship';
-                src: url("./fonts/Spaceship-Bullet.ttf");
+                src: url("bootstrap/fonts/Spaceship-Bullet.ttf");
             }
 
             @font-face {
                 font-family: 'glyphicons-halflings-regular';
-                src: url("./fonts/glyphicons-halflings-regular.ttf");
+                src: url("bootstrap/fonts/glyphicons-halflings-regular.ttf");
             }
             body {
                 font-family: 'glyphicons-halflings-regular';
                 text-align:center;
             }
-            h1, h2, h3, h4, h5, h6 {
+            h1, h2, h3 {
                 font-family: 'spaceship';
             }
+
             input[type="text"], input[type="password"] {
                 text-align:center;
                 border: solid transparent;
@@ -43,6 +43,10 @@
                 border-top: groove black;
                 text-align: center;
                 padding: 10px;
+                margin-left: 200px;
+                margin-right: 200px;
+                margin-top: 10px;
+                margin-bottom: 10px;
             }
             table, tr, th, td {
                 border: solid black;

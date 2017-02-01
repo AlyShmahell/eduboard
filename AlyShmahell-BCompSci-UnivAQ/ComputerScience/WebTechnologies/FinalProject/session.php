@@ -1,15 +1,16 @@
 <?php include "header.php"; include "functions.php"; ?>
-<?php if($_SESSION['usertype']=="user") {?> <h1>Corporation Area</h1> <?php } else if($_SESSION['usertype']=="admin") {?>
-<h1>Administration Area</h1>
+<h1>Federal Corporation Claim Registry</h1>
+<?php if($_SESSION['usertype']=="user") {?> <h2>Corporation Area</h2> <?php } else if($_SESSION['usertype']=="admin") {?>
+<h2>Administration Area</h2>
 <?php } ?>
-<div><p> Welcome <?php echo $_SESSION['username'];  ?> </p></div>
+<div><p> Welcome <?php echo "<b>".$_SESSION['username']."</b>";  ?> </p></div>
 
 <?php if($_SESSION['usertype']=="user") {populate_user_data();respond_to_inspection();} else if($_SESSION['usertype']=="admin") {populate_admin_area();} ?>
 
 <?php
 if($_SESSION['usertype']=="user")  {insert_user_data(); ?>
 <div>
-    <p>Asset Claim Form, please name the asset you wish to claim and specify its location below:</p>
+    <h3>Asset Claim Form, please name the asset you wish to claim and specify its location below:</h3>
     <form method="post" name="insert-user-data">
         <label>asset name</label><input type="text" name="assetname"><br/>
         <label>asset coordinates</label><input type="text" name="assetcoordinates"><br/>

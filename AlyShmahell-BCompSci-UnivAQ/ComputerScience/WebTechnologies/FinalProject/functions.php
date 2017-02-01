@@ -78,16 +78,19 @@ if (!function_exists('register')) {
 if (!function_exists('populate_user_data')) {
     function populate_user_data()
     {
-        echo "<br/> here are the assets to which you have claim for!<br/>";
+        echo "<h3> Here are the assets to which you have claim for:</h3>";
         $user_db = $_SESSION['user_db'];
         $user_data = mysql_query("SELECT * FROM $user_db");
         if (!mysql_num_rows($user_data))
-            echo "You have no assets yet!";
-        echo "<table><tr><th>Asset Name</th><th>Asset Location</th></tr>";
-        while ($user_data_array = mysql_fetch_array($user_data)) {
-            echo "<tr><td>".$user_data_array[0]."</td><td>".$user_data_array[1]."</td></tr>";
+            echo "<p>You have no assets yet!</p>";
+        else {
+            echo "<table><tr><th>Asset Name</th><th>Asset Location</th></tr>";
+            while ($user_data_array = mysql_fetch_array($user_data)) {
+                echo "<tr><td>".$user_data_array[0]."</td><td>".$user_data_array[1]."</td></tr>";
+            }
+            echo "</table>";
         }
-        echo "</table>";
+
     }
 }
 if (!function_exists('insert_user_data')) {
@@ -105,24 +108,25 @@ if (!function_exists('insert_user_data')) {
 if (!function_exists('populate_admin_area')) {
     function populate_admin_area()
     {
-        echo "<br/> here are the corporations we have on record!<br/>";
+        echo "<h3> Here are the corporations we have on record:</h3>";
         $admin_data = mysql_query("SELECT * FROM groups");
         if (!mysql_num_rows($admin_data))
             echo "Unfortunately there seems to be no corporations on record, peace failed and the world was destroyed :)";
-        while ($user_data_array = mysql_fetch_array($admin_data)) {
-            if ($user_data_array[1] == "user")
-                echo $user_data_array[0] . " ";
+        else{
+            echo "<table><tr><th>Corporation Name</th></tr>";
+            while ($user_data_array = mysql_fetch_array($admin_data)) {
+                if ($user_data_array[1] == "user")
+                    echo "<tr><td>".$user_data_array[0]."</td></tr>";
+            }
+             echo "</table>";
         }
-
         $inspection_rights = mysql_query("SELECT * FROM " . $_SESSION['username']);
         if (!mysql_num_rows($inspection_rights))
-            echo "No inspection rights granted yet";
+            echo "<h3>No inspection rights granted yet</h3>";
         else while ($inspection_rights_array = mysql_fetch_array($inspection_rights)) {
-            echo "<h4>".$inspection_rights_array[0]."</h4>";
+            echo "<h3>Corporation under inspection: ".$inspection_rights_array[0]."</h3>";
             $inspection_granted_data = mysql_query("SELECT * FROM " . $inspection_rights_array[1]);
-            if (!mysql_num_rows($inspection_granted_data))
-                echo "No Assets claimed by this company";
-            else {
+            if (mysql_num_rows($inspection_granted_data)){
                 echo "<table><tr><th>Asset Name</th><th>Asset Location</th></tr>";
                 while ($inspection_granted_data_array = mysql_fetch_array($inspection_granted_data)) {
                     echo "<tr><td>".$inspection_granted_data_array[0]."</td><td>".$inspection_granted_data_array[1]."</td></tr>";
@@ -137,20 +141,16 @@ if (!function_exists('populate_admin_area')) {
 if (!function_exists('inspect_user_data')) {
     function inspect_user_data()
     {
-        if(isset($_POST['usertoinspect']))
+        if(!empty($_POST['usertoinspect'])&&isset($_POST['usertoinspect']))
         {
             $username = $_SESSION['username'];
             $username = mysql_real_escape_string($username);
-            echo $username . " is a chicken <br/>";
             $usertoinspect = $_POST['usertoinspect'];
             $usertoinspect = mysql_real_escape_string($usertoinspect);
-            echo $usertoinspect . " is a chicken too <br/>";
             if (!empty($username) && !empty($usertoinspect)) {
                 $inspection_requested = mysql_query("INSERT INTO webtech.$username(corporation,database_token) VALUES('$usertoinspect','0')");
                 if ($inspection_requested)
-                    echo "user " . $_POST['usertoinspect'] . " was informed of inspection and asked to comply";
-                else
-                    echo "operation failed " . $_POST['usertoinspect'] . "  was not inserted into ".$_SESSION['username'];
+                    echo "<p>user " . $_POST['usertoinspect'] . " was informed of inspection and asked to comply</p>";
             }
         }
     }
@@ -160,14 +160,14 @@ if (!function_exists('inspect_user_data')) {
 if (!function_exists('respond_to_inspection')) {
     function respond_to_inspection()
     {
-        echo "<br/> Inspection Requests:<br/>";
+        echo "<h3> Inspection Requests:</h3>";
         $inspection_admins = mysql_query("SELECT * FROM admins");
         if (!mysql_num_rows($inspection_admins))
-            echo "No Admins! Oh it's chaos :D";
+            echo "<p>No Admins! Oh it's chaos :D</p>";
         else while ($inspection_admins_onebyone = mysql_fetch_array($inspection_admins)) {
             $inspection_requests = mysql_query("SELECT * FROM ".$inspection_admins_onebyone[0]." WHERE corporation = '" . $_SESSION['username'] . "'");
             if (!mysql_num_rows($inspection_requests))
-                echo "No inspections! Oh joy! *_* </br></br>";
+                echo "<p>No inspections! Oh joy! *_* </p>";
             else while ($respond_to_request = mysql_fetch_array($inspection_requests)) {
                 if ($respond_to_request[1] == '0')
                     $inspection_granted = mysql_query("UPDATE " . $inspection_admins_onebyone[0] . " SET database_token = '" . $_SESSION['user_db'] . "' WHERE corporation = '" . $_SESSION['username'] . "'");
