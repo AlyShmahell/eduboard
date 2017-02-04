@@ -1,0 +1,21 @@
+<h1>Federal Corporation Claim Registry</h1>
+<h2>Administration Area</h2>
+<div><p> Welcome {{adminUser}} </p></div>
+<h3>Here are the corporations we have on record:</h3>
+<div>{{regularUsersTable}}</div>
+<div>
+    <h4> Corporation Inspection Form </h4>
+    <form method="post" name="inspectuserdata">
+        <label>corporation name</label><input type="text" name="usertoinspect"><br/>
+        <input type="submit">
+    </form>
+</div>
+<div>
+    <h3>Corporations Under Inspection</h3>
+    <p>
+        <b>{{inspectionTable}}</b>
+    </p>
+</div>
+<div>
+    <p><a href="logout.php">Logout</a></p>
+</div>
