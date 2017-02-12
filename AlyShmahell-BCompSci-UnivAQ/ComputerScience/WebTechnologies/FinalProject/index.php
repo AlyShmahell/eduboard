@@ -1,10 +1,10 @@
 <?php
 
-include "header.php";
+include "./includes/databaseConnect.php";
 
 if (!empty($_SESSION['loggedin']) && !empty($_SESSION['username']))
-    include "session.php";
+    include "./public/session.php";
 else
-    include "login.php";
+    include "./public/login.php";
 
 ?>

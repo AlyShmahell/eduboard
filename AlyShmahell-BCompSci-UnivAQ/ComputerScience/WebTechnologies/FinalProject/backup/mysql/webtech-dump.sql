@@ -26,6 +26,8 @@ SET time_zone = "+00:00";
 -- Table structure for table `a0693bd09e8214164198812ee85d9256cb36d7ab7`
 --
 
+USE webtech;
+
 CREATE TABLE IF NOT EXISTS `a0693bd09e8214164198812ee85d9256cb36d7ab7` (
   `assetname` varchar(300) NOT NULL,
   `assetcoordinates` varchar(300) NOT NULL,
@@ -388,8 +390,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`username`, `pass_word`) VALUES
-('Administrator', 'e23b1a1b17de31c73bcfc9e66a35763ebaa863ea1a6535b44da077a11c14396fbab10153029bb65d75950ecb05930dd1207573c620f4eaf2c5ca3a4a5eae0b3a');
+
 
 -- --------------------------------------------------------
 
@@ -484,22 +485,6 @@ INSERT INTO `users` (`username`, `pass_word`) VALUES
 ('SpaceX', '09c3374377c17f964b6c3732b2a0c88faf1525134ffb97675e73b01d91da7c1fdaac06901ef5b6a8c888dad43fa94583c32f0f86815d45385e7aa01cb27a41fb'),
 ('WideGalaxy', 'd5e93bf51fe54ddab6800a407d1408e4c9f1a886b556d9e472837c542d45f57e113e93e76103453b3433f38cc425cd1e10388fce126aac5da46f1621f1f875be'),
 ('Xfinity', '9d36e073839cf81999121decd5e9b5ccc5748afe00eca60121226d55a62f72b47a15337aab8ac901143051509130bad82a8cf2269f99d55e127e8bad39d8fc70');
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `admins`
---
-ALTER TABLE `admins`
-  ADD CONSTRAINT `admins_ibfk_1` FOREIGN KEY (`username`) REFERENCES `groups` (`username`);
-
---
--- Constraints for table `users`
---
-ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`username`) REFERENCES `groups` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

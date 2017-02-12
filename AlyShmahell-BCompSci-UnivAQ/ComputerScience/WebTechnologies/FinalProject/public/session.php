@@ -1,8 +1,8 @@
 <?php 
-include "databaseConnect.php";
-include "functions.php";
+include __DIR__."/../includes/databaseConnect.php";
+include __DIR__."/../includes/functions.php";
 
-include "header.html";
+include __DIR__."/../templates/html/header.html";
 if($_SESSION['usertype']=="user") {
     populate_user_data();
     insert_user_data();
@@ -11,7 +11,7 @@ if($_SESSION['usertype']=="user") {
         populate_admin_area();
         inspect_user_data();
  } 
-include "footer.html";
+include __DIR__."/../templates/html/footer.html";
 ?>
 
 

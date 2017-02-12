@@ -1,0 +1,67 @@
+.
+├── includes
+│   ├── 3rdParty
+│   │   ├── bootstrap
+│   │   │   ├── css
+│   │   │   │   ├── bootstrap.css
+│   │   │   │   ├── bootstrap.css.map
+│   │   │   │   ├── bootstrap.min.css
+│   │   │   │   ├── bootstrap.min.css.map
+│   │   │   │   ├── bootstrap-theme.css
+│   │   │   │   ├── bootstrap-theme.css.map
+│   │   │   │   ├── bootstrap-theme.min.css
+│   │   │   │   └── bootstrap-theme.min.css.map
+│   │   │   ├── fonts
+│   │   │   │   ├── glyphiconsHalflingsRegular.eot
+│   │   │   │   ├── glyphiconsHalflingsRegular.svg
+│   │   │   │   ├── glyphiconsHalflingsRegular.ttf
+│   │   │   │   ├── glyphiconsHalflingsRegular.woff
+│   │   │   │   └── glyphiconsHalflingsRegular.woff2
+│   │   │   └── js
+│   │   │       ├── bootstrap.js
+│   │   │       ├── bootstrap.min.js
+│   │   │       └── npm.js
+│   │   └── SpaceshipBullet
+│   │       ├── NOTICE
+│   │       └── SpaceshipBullet.ttf
+│   ├── databaseConnect.php
+│   ├── functions.php
+│   ├── mysql
+│   │   ├── database.init.sh
+│   │   ├── Entity-Relationship_Diagram.graphml
+│   │   ├── Entity-Relationship_Diagram.pdf
+│   │   ├── webtech-dump.sql
+│   │   └── webtech.sql
+│   └── Regina
+│       ├── LICENSE
+│       ├── manipulateTable
+│       │   ├── cellData.html
+│       │   ├── columnTitle.html
+│       │   ├── index.php
+│       │   ├── manipulateTable.php
+│       │   ├── rowEnd.html
+│       │   ├── rowStart.html
+│       │   ├── tableEnd.html
+│       │   └── tableStart.html
+│       └── Regina.inc.php
+├── index.php
+├── LICENSE
+├── public
+│   ├── login.php
+│   ├── logout.php
+│   ├── register.php
+│   └── session.php
+├── templates
+│   ├── css
+│   │   └── style.css
+│   └── html
+│       ├── failure.html
+│       ├── footer.html
+│       ├── header.html
+│       ├── login.html
+│       ├── register.html
+│       ├── session_adminUserArea.html
+│       └── session_regularUserArea.html
+└── tree.txt
+
+14 directories, 50 files

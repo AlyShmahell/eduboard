@@ -19,9 +19,9 @@ if(!function_exists('notify'))
 {
     function notify($notifyTitle,$notifyMessage) 
     {
-        $html = file_get_contents("header.html");
-        $html = $html . file_get_contents("failure.html");
-        $html = $html . file_get_contents("footer.html");
+        $html = file_get_contents(__DIR__."/../templates/html/header.html");
+        $html = $html . file_get_contents(__DIR__."/../templates/html/failure.html");
+        $html = $html . file_get_contents(__DIR__."/../templates/html/footer.html");
         $html  = str_replace("{{title}}",$notifyTitle,$html);
         $html  = str_replace("{{message}}",$notifyMessage,$html);
         echo $html;
@@ -43,7 +43,7 @@ if (!function_exists('login'))
             $row = mysql_fetch_array($checkLoginInUsers);
             $_SESSION['loggedin'] = 1;
             $_SESSION['usertype'] = "user";
-            header("Location: ./session.php");
+            header("Location: http://localhost/public/session.php");
         } 
         else if (mysql_num_rows($checkLoginInAdmins) == 1) 
         {
@@ -51,7 +51,7 @@ if (!function_exists('login'))
             $_SESSION['loggedin'] = 1;
             $_SESSION['usertype'] = "admin";
             $admin_db = mysql_query("CREATE TABLE ".$_SESSION['username']."(corporation VARCHAR(767) UNIQUE PRIMARY KEY, database_token VARCHAR(767))");
-            header("Location: http://localhost/Include/1stParty/session.php");
+            header("Location: http://localhost/public/session.php");
         } 
         else
             notify("Error","Wrong Credentials");  
@@ -107,7 +107,7 @@ if (!function_exists('populate_user_data'))
     function populate_user_data()
     {
         /** Presentation Logic: populate_user_data **/
-        $html = file_get_contents(__DIR__."/session_regularUserArea.html");
+        $html = file_get_contents(__DIR__."/../templates/html/session_regularUserArea.html");
         $html = str_replace("{{regularUser}}", $_SESSION['username'], $html);
         $user_data = array();
         $user_data = mysql_query("SELECT * FROM ".$_SESSION['user_table']);
@@ -139,11 +139,14 @@ if (!function_exists('populate_user_data'))
             else while ($respond_to_request = mysql_fetch_array($inspection_requests)) 
             {
                 if ($respond_to_request[1] == '0')
+                {
                     $inspection_granted = mysql_query("UPDATE " . $inspection_admins_onebyone[0] . " SET database_token = '" . $_SESSION['user_table'] . "' WHERE corporation = '" . $_SESSION['username'] . "'");
-                if ($inspection_granted)
-                    $html = str_replace("{{inspectionRequest}}","admin '" . $inspection_admins_onebyone[0] . "' was granted inspection rights",$html);
+                    if ($inspection_granted)
+                        $html = str_replace("{{inspectionRequest}}","admin '" . $inspection_admins_onebyone[0] . "' was granted inspection rights",$html);
+                }
             }
         }
+        $html = str_replace("{{inspectionRequest}}","No New Inspection Requests",$html);
         echo $html;
     }
 }
@@ -167,7 +170,7 @@ if (!function_exists('populate_admin_area'))
 {
     function populate_admin_area()
     {
-        $html = file_get_contents(__DIR__."/session_adminUserArea.html");
+        $html = file_get_contents(__DIR__."/../templates/html/session_adminUserArea.html");
         $html = str_replace("{{adminUser}}", $_SESSION['username'], $html);
         $admin_data = mysql_query("SELECT * FROM groups");
         if (!mysql_num_rows($admin_data))
