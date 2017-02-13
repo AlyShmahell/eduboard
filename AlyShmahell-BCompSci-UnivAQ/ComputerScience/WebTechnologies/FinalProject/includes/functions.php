@@ -37,20 +37,29 @@ if (!function_exists('login'))
     {
         credit();
         $checkLoginInUsers = mysql_query("SELECT * FROM users WHERE username='" . $_SESSION['username'] . "' AND pass_word = '" . $_SESSION['password'] . "'");
-        $checkLoginInAdmins = mysql_query("SELECT * FROM admins WHERE username='" . $_SESSION['username'] . "' AND pass_word = '" . $_SESSION['password'] . "'");
         if (mysql_num_rows($checkLoginInUsers) == 1) 
         {
             $row = mysql_fetch_array($checkLoginInUsers);
             $_SESSION['loggedin'] = 1;
-            $_SESSION['usertype'] = "user";
-            header("Location: http://localhost/public/session.php");
-        } 
-        else if (mysql_num_rows($checkLoginInAdmins) == 1) 
-        {
-            $row = mysql_fetch_array($checkLoginInAdmins);
-            $_SESSION['loggedin'] = 1;
-            $_SESSION['usertype'] = "admin";
-            $admin_db = mysql_query("CREATE TABLE ".$_SESSION['username']."(corporation VARCHAR(767) UNIQUE PRIMARY KEY, database_token VARCHAR(767))");
+            //TODO
+            $checkGroup = mysql_query("SELECT * FROM groups WHERE username='".$_SESSION['username']."' AND usertype='admin'");
+            if(!empty($checkGroup)&&mysql_num_rows($checkGroup)==1)
+            {
+                $_SESSION['usertype'] = "admin";
+                $admin_db = mysql_query("CREATE TABLE ".$_SESSION['username']."(corporation VARCHAR(767) UNIQUE PRIMARY KEY, database_token VARCHAR(767))");
+            }
+            else
+            {
+                $userTypeArray = mysql_query("SELECT * FROM groups WHERE username='".$_SESSION['username']."'");
+                if(!empty($userTypeArray))
+                {
+                    $userTypeRow = mysql_fetch_array($userTypeArray);
+                    $_SESSION['usertype'] = $userTypeRow[1];
+                }
+                else
+                    $_SESSION['usertype'] = "default";
+            }
+
             header("Location: http://localhost/public/session.php");
         } 
         else
@@ -66,9 +75,8 @@ if (!function_exists('register'))
         $checkusername = mysql_query("SELECT * FROM groups WHERE username='" . $_SESSION['username'] . "'");
         if (mysql_num_rows($checkusername) == 1) 
         {
-            $checkusernameInAdmins = mysql_query("SELECT * FROM admins WHERE username='" . $_SESSION['username'] . "'");
             $checkusernameInUsers = mysql_query("SELECT * FROM users WHERE username='" . $_SESSION['username'] . "'");
-            if (mysql_num_rows($checkusernameInAdmins) == 1 || mysql_num_rows($checkusernameInUsers) == 1) 
+            if (mysql_num_rows($checkusernameInUsers) == 1) 
             {
                 notify("Error","Credentials already in use!");
                 header("Refresh:10");
@@ -128,8 +136,8 @@ if (!function_exists('populate_user_data'))
 
 
         /** Hybrid Logic: Respond to Inspection **/
-        $inspection_admins = mysql_query("SELECT * FROM admins");
-        if (!mysql_num_rows($inspection_admins))
+        $inspection_admins = mysql_query("SELECT * FROM groups WHERE usertype='admin'");
+        if (!empty($inspection_admins)&&!mysql_num_rows($inspection_admins))
             $html = str_replace("{{inspectionRequest}}","No Admins! Oh it's chaos :D",$html);
         else while ($inspection_admins_onebyone = mysql_fetch_array($inspection_admins)) 
         {
@@ -158,9 +166,16 @@ if (!function_exists('insert_user_data'))
         /** Business Logic: insert_user_data **/
         if (!empty($_POST['assetname']) && !empty($_POST['assetcoordinates'])) 
         {
-            $user_data_inserted = mysql_query("INSERT INTO ".$_SESSION['user_table']."(assetname,assetcoordinates) VALUES('" . $_POST['assetname'] . "', '" . $_POST['assetcoordinates'] . "')");
-            if ($user_data_inserted == 1)
-                header("Refresh:0");
+            $checkServices = mysql_query("SELECT * FROM services where usertype='".$_SESSION['usertype']."'");
+            if(!empty($checkServices))
+            {
+                if(mysql_fetch_array($checkServices)[1]=="accessGranted")
+                {
+                    $user_data_inserted = mysql_query("INSERT INTO ".$_SESSION['user_table']."(assetname,assetcoordinates) VALUES('" . $_POST['assetname'] . "', '" . $_POST['assetcoordinates'] . "')");
+                    if ($user_data_inserted == 1)
+                        header("Refresh:0");
+                }
+            }
         }
     }
 }
@@ -170,6 +185,7 @@ if (!function_exists('populate_admin_area'))
 {
     function populate_admin_area()
     {
+        $corporationListTable = array();
         $html = file_get_contents(__DIR__."/../templates/html/session_adminUserArea.html");
         $html = str_replace("{{adminUser}}", $_SESSION['username'], $html);
         $admin_data = mysql_query("SELECT * FROM groups");
@@ -177,18 +193,17 @@ if (!function_exists('populate_admin_area'))
             $html = str_replace("{{regularUsersTable}}", "Unfortunately there seems to be no corporations on record, peace failed and the world was destroyed :)", $html);
         else
         {
-
-            $table = array();
             for($i = 0; $i < mysql_num_rows($admin_data);  $i++)
             {
                 $user_data_array =  mysql_fetch_array($admin_data);
-                if ($user_data_array[1] == "user")
-                    array_push($table,$user_data_array[0]);
+                if ($user_data_array[1] == "usertype1"||$user_data_array[1] == "usertype2")
+                    array_push($corporationListTable,$user_data_array[0]);
             }
-            $html = str_replace("{{regularUsersTable}}", createTable(array("Corporation Name"),$table), $html); 
+            $html = str_replace("{{regularUsersTable}}", createTable(array("Corporation Name"),$corporationListTable), $html); 
 
         }
 
+        $html = str_replace("{{corporationSelect}}", createSelect("corporationSelect",$corporationListTable), $html);
 
         $inspection_rights = mysql_query("SELECT * FROM " . $_SESSION['username']);
         if (!mysql_num_rows($inspection_rights))
@@ -199,18 +214,21 @@ if (!function_exists('populate_admin_area'))
             $inspection_granted_data = mysql_query("SELECT * FROM " . $inspection_rights_array[1]);
             if (mysql_num_rows($inspection_granted_data))
             {
-                $table = array();
+                $userAssetTable = array();
                 for($i = 0; $i < mysql_num_rows($inspection_granted_data);  $i++)
                 {
                     $inspection_granted_data_array = mysql_fetch_array($inspection_granted_data);
-                    array_push($table,$inspection_granted_data_array[0]);
-                    array_push($table,$inspection_granted_data_array[1]);
+                    array_push($userAssetTable,$inspection_granted_data_array[0]);
+                    array_push($userAssetTable,$inspection_granted_data_array[1]);
                 }
-                $html = str_replace(", {{inspectionTable}}", createTable(array("Asset Name","Asset Location"),$table)."{{inspectionTable}}", $html);
+                $html = str_replace(", {{inspectionTable}}", createTable(array("Asset Name","Asset Location"),$userAssetTable)."{{inspectionTable}}", $html);
                 mysql_query("DELETE FROM " . $_SESSION['username'] . " WHERE database_token != '0'");
             }
         }
         $html = str_replace(", {{inspectionTable}}", "", $html);
+        
+        $html = str_replace("{{selectCorporation}}", createSelect("selectCorporation",$corporationListTable), $html);
+        
         echo $html;
     }
 }
@@ -219,10 +237,10 @@ if (!function_exists('inspect_user_data'))
 {
     function inspect_user_data()
     {
-        if(!empty($_POST['usertoinspect'])&&isset($_POST['usertoinspect']))
+        if(!empty($_POST['corporationSelect'])&&isset($_POST['corporationSelect']))
         {
             $username = $_SESSION['username'];
-            $usertoinspect = $_POST['usertoinspect'];
+            $usertoinspect = $_POST['corporationSelect'];
             $usertoinspect = mysql_real_escape_string($usertoinspect);
             $usertoinspect = preg_replace('/\s+/', '', $usertoinspect);
             if (!empty($username) && !empty($usertoinspect)) 
@@ -235,4 +253,28 @@ if (!function_exists('inspect_user_data'))
     }
 }
 
+
+if(!function_exists('change_group_permissions'))
+{
+    function change_group_permissions()
+    {
+        if(!empty($_POST['selectUserType'])&&!empty($_POST['accessType']))
+        {
+            $access = $_POST['accessType'];
+            $changePermissions = mysql_query("UPDATE services set service='$access' WHERE usertype = '".$_POST['selectUserType']."'");
+        }
+    }
+}
+
+if(!function_exists('change_user_group'))
+{
+    function change_user_group()
+    {
+        if(!empty($_POST['selectCorporation'])&&!empty($_POST['setType']))
+        {
+            $newType = $_POST['setType'];
+            $changePermissions = mysql_query("UPDATE groups set usertype='$newType' WHERE username = '".$_POST['selectCorporation']."'");
+        }
+    }
+}
 ?>
