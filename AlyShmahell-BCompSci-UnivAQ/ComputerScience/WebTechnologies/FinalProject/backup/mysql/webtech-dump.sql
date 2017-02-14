@@ -3,10 +3,11 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Feb 01, 2017 at 10:15 PM
+-- Generation Time: Feb 14, 2017 at 01:37 AM
 -- Server version: 5.5.54-0ubuntu0.14.04.1
 -- PHP Version: 5.5.9-1ubuntu4.20
 
+SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
@@ -19,14 +20,14 @@ SET time_zone = "+00:00";
 --
 -- Database: `webtech`
 --
+CREATE DATABASE IF NOT EXISTS `webtech` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
+USE `webtech`;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `a0693bd09e8214164198812ee85d9256cb36d7ab7`
 --
-
-USE webtech;
 
 CREATE TABLE IF NOT EXISTS `a0693bd09e8214164198812ee85d9256cb36d7ab7` (
   `assetname` varchar(300) NOT NULL,
@@ -295,7 +296,9 @@ CREATE TABLE IF NOT EXISTS `ab98a94660075801eda3a72bc4bc26cff7d4d5749` (
 
 INSERT INTO `ab98a94660075801eda3a72bc4bc26cff7d4d5749` (`assetname`, `assetcoordinates`) VALUES
 ('cometX39', '1382.2349'),
-('cometX40', '1382.2369');
+('cometX40', '1382.2369'),
+('cometX70', '1382.2389'),
+('cometX80', '1382.2410');
 
 -- --------------------------------------------------------
 
@@ -376,25 +379,6 @@ CREATE TABLE IF NOT EXISTS `Administrator` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `admins`
---
-
-CREATE TABLE IF NOT EXISTS `admins` (
-  `username` varchar(65) NOT NULL,
-  `pass_word` varchar(767) NOT NULL,
-  PRIMARY KEY (`username`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `admins`
---
-
-
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `af65930a613b6ef323a920c1f6cbd0440c3ee0d80`
 --
 
@@ -431,24 +415,45 @@ CREATE TABLE IF NOT EXISTS `groups` (
 --
 
 INSERT INTO `groups` (`username`, `usertype`) VALUES
-('AAGC', 'user'),
+('AAGC', 'usertype1'),
 ('Administrator', 'admin'),
-('AlyTech', 'user'),
-('DarkE', 'user'),
-('DeepOre', 'user'),
-('DeepSpace', 'user'),
-('DrillX', 'user'),
-('Exxon', 'user'),
-('FBI', 'user'),
-('Google', 'user'),
-('HannaH', 'user'),
-('HeliumIndustries', 'user'),
-('NASA', 'user'),
-('SpaceGem', 'user'),
-('Spacetronics', 'user'),
-('SpaceX', 'user'),
-('WideGalaxy', 'user'),
-('Xfinity', 'user');
+('AlyTech', 'usertype2'),
+('DarkE', 'usertype1'),
+('DeepOre', 'usertype1'),
+('DeepSpace', 'usertype1'),
+('DrillX', 'usertype1'),
+('Exxon', 'usertype1'),
+('FBI', 'usertype1'),
+('Google', 'usertype1'),
+('HannaH', 'usertype1'),
+('HeliumIndustries', 'usertype1'),
+('NASA', 'usertype1'),
+('SpaceGem', 'usertype1'),
+('Spacetronics', 'usertype1'),
+('SpaceX', 'usertype1'),
+('WideGalaxy', 'usertype1'),
+('Xfinity', 'usertype1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `services`
+--
+
+CREATE TABLE IF NOT EXISTS `services` (
+  `usertype` varchar(65) NOT NULL,
+  `service` varchar(767) NOT NULL,
+  PRIMARY KEY (`usertype`),
+  UNIQUE KEY `usertype` (`usertype`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `services`
+--
+
+INSERT INTO `services` (`usertype`, `service`) VALUES
+('usertype1', 'accessGranted'),
+('usertype2', 'accessDenied');
 
 -- --------------------------------------------------------
 
@@ -464,11 +469,18 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
+-- RELATIONS FOR TABLE `users`:
+--   `username`
+--       `groups` -> `username`
+--
+
+--
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`username`, `pass_word`) VALUES
 ('AAGC', '8aeb76155cfdf0ee5fc46655132e4ab2e0948ff31a1e3d59b9c6bda3c64c1e76a59be6fadd6d23c2fa54d3549b6ab0abd87359f903a2a8494005ac4900e10923'),
+('Administrator', 'e23b1a1b17de31c73bcfc9e66a35763ebaa863ea1a6535b44da077a11c14396fbab10153029bb65d75950ecb05930dd1207573c620f4eaf2c5ca3a4a5eae0b3a'),
 ('AlyTech', 'a6bb12a6f9283f8b2513d322efb806267f485d2d811e893a6bd29dd0fae612f682b3151a956d8b50def19f9be07d71382757d530034c642bd4c52854674f44c1'),
 ('DarkE', '19af7d79a43633d7c92e598955e7202b4ac9ed839a8f354f385267d1889fe305cdaeffa4354585344b5c37a6ca1ebd080d82d3058f7ffb789302144a77f1f2d3'),
 ('DeepOre', '3e47a77d278ad9444f7ae3eff283b2e1e2ed8ff14c72610e78492ed1a4eb64ae4ec79165db8509ade9d263b8a0a2388f28d33fdd0784a830d66c22ba1b9b16bb'),
@@ -485,6 +497,17 @@ INSERT INTO `users` (`username`, `pass_word`) VALUES
 ('SpaceX', '09c3374377c17f964b6c3732b2a0c88faf1525134ffb97675e73b01d91da7c1fdaac06901ef5b6a8c888dad43fa94583c32f0f86815d45385e7aa01cb27a41fb'),
 ('WideGalaxy', 'd5e93bf51fe54ddab6800a407d1408e4c9f1a886b556d9e472837c542d45f57e113e93e76103453b3433f38cc425cd1e10388fce126aac5da46f1621f1f875be'),
 ('Xfinity', '9d36e073839cf81999121decd5e9b5ccc5748afe00eca60121226d55a62f72b47a15337aab8ac901143051509130bad82a8cf2269f99d55e127e8bad39d8fc70');
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`username`) REFERENCES `groups` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
+SET FOREIGN_KEY_CHECKS=1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

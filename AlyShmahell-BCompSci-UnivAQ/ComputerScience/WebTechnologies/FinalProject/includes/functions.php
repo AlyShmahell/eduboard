@@ -205,30 +205,29 @@ if (!function_exists('populate_admin_area'))
 
         $html = str_replace("{{corporationSelect}}", createSelect("corporationSelect",$corporationListTable), $html);
 
+        $userAssetTable = array();
         $inspection_rights = mysql_query("SELECT * FROM " . $_SESSION['username']);
         if (!mysql_num_rows($inspection_rights))
-            $html = str_replace("{{inspectionTable}}", "No inspection rights granted yet", $html);
+            array_push($userAssetTable,"No inspection rights granted yet");
         else while ($inspection_rights_array = mysql_fetch_array($inspection_rights)) 
         {
-            $html = str_replace("{{inspectionTable}}",$inspection_rights_array[0].", {{inspectionTable}}", $html);
+            array_push($userAssetTable,$inspection_rights_array[0]);
             $inspection_granted_data = mysql_query("SELECT * FROM " . $inspection_rights_array[1]);
             if (mysql_num_rows($inspection_granted_data))
-            {
-                $userAssetTable = array();
+            { 
+                $tempTable = array();
                 for($i = 0; $i < mysql_num_rows($inspection_granted_data);  $i++)
                 {
                     $inspection_granted_data_array = mysql_fetch_array($inspection_granted_data);
-                    array_push($userAssetTable,$inspection_granted_data_array[0]);
-                    array_push($userAssetTable,$inspection_granted_data_array[1]);
+                    array_push($tempTable,$inspection_granted_data_array[0]);
+                    array_push($tempTable,$inspection_granted_data_array[1]);
                 }
-                $html = str_replace(", {{inspectionTable}}", createTable(array("Asset Name","Asset Location"),$userAssetTable)."{{inspectionTable}}", $html);
+                array_push($userAssetTable,createTable(array("Asset Name","Asset Location"),$tempTable));
                 mysql_query("DELETE FROM " . $_SESSION['username'] . " WHERE database_token != '0'");
             }
         }
-        $html = str_replace(", {{inspectionTable}}", "", $html);
-        
+        $html = str_replace("{{inspectionTable}}", createTable(array("Corporation"),$userAssetTable), $html);
         $html = str_replace("{{selectCorporation}}", createSelect("selectCorporation",$corporationListTable), $html);
-        
         echo $html;
     }
 }
