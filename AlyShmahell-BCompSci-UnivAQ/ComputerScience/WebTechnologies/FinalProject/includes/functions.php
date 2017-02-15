@@ -185,7 +185,8 @@ if (!function_exists('populate_admin_area'))
 {
     function populate_admin_area()
     {
-        $corporationListTable = array();
+        $corporationListTable1 = array();
+        $corporationListTable2 = array();
         $html = file_get_contents(__DIR__."/../templates/html/session_adminUserArea.html");
         $html = str_replace("{{adminUser}}", $_SESSION['username'], $html);
         $admin_data = mysql_query("SELECT * FROM groups");
@@ -197,13 +198,17 @@ if (!function_exists('populate_admin_area'))
             {
                 $user_data_array =  mysql_fetch_array($admin_data);
                 if ($user_data_array[1] == "usertype1"||$user_data_array[1] == "usertype2")
-                    array_push($corporationListTable,$user_data_array[0]);
+                {
+                    array_push($corporationListTable1,$user_data_array[0]);
+                    array_push($corporationListTable2,$user_data_array[0]);
+                    array_push($corporationListTable2,$user_data_array[1]);
+                }
             }
-            $html = str_replace("{{regularUsersTable}}", createTable(array("Corporation Name"),$corporationListTable), $html); 
+            $html = str_replace("{{regularUsersTable}}", createTable(array("Corporation Name","Group"),$corporationListTable2), $html); 
 
         }
 
-        $html = str_replace("{{corporationSelect}}", createSelect("corporationSelect",$corporationListTable), $html);
+        $html = str_replace("{{corporationSelect}}", createSelect("corporationSelect",$corporationListTable1), $html);
 
         $userAssetTable = array();
         $inspection_rights = mysql_query("SELECT * FROM " . $_SESSION['username']);
@@ -227,7 +232,7 @@ if (!function_exists('populate_admin_area'))
             }
         }
         $html = str_replace("{{inspectionTable}}", createTable(array("Corporation"),$userAssetTable), $html);
-        $html = str_replace("{{selectCorporation}}", createSelect("selectCorporation",$corporationListTable), $html);
+        $html = str_replace("{{selectCorporation}}", createSelect("selectCorporation",$corporationListTable1), $html);
         echo $html;
     }
 }
@@ -245,9 +250,8 @@ if (!function_exists('inspect_user_data'))
             if (!empty($username) && !empty($usertoinspect)) 
             {
                 $inspection_requested = mysql_query("INSERT INTO webtech.$username (corporation,database_token) VALUES('$usertoinspect','0')");
-
+                header('Refresh:0');
             }
-            header("Refresh:0");
         }
     }
 }
@@ -261,6 +265,7 @@ if(!function_exists('change_group_permissions'))
         {
             $access = $_POST['accessType'];
             $changePermissions = mysql_query("UPDATE services set service='$access' WHERE usertype = '".$_POST['selectUserType']."'");
+            header('Refresh:0');
         }
     }
 }
@@ -272,7 +277,8 @@ if(!function_exists('change_user_group'))
         if(!empty($_POST['selectCorporation'])&&!empty($_POST['setType']))
         {
             $newType = $_POST['setType'];
-            $changePermissions = mysql_query("UPDATE groups set usertype='$newType' WHERE username = '".$_POST['selectCorporation']."'");
+            $changeGroup = mysql_query("UPDATE groups set usertype='$newType' WHERE username = '".$_POST['selectCorporation']."'");
+            header('Refresh:0');
         }
     }
 }

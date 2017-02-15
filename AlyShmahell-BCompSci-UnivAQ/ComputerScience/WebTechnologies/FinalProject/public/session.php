@@ -6,6 +6,7 @@ include __DIR__."/../includes/functions.php";
 
 if (!empty($_SESSION['username']) && !empty($_SESSION['loggedin'])) 
 {
+    ob_start();
     include __DIR__."/../templates/html/header.html";
     if($_SESSION['usertype']=="usertype1"||$_SESSION['usertype']=="usertype2") 
     {
