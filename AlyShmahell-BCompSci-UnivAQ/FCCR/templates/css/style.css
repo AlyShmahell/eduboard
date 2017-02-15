@@ -1,0 +1,43 @@
+@font-face {
+    font-family: 'spaceship';
+    src: url("../3rdParty/SpaceshipBullet/SpaceshipBullet.ttf");
+}
+
+@font-face {
+    font-family: 'glyphiconsHalflingsRegular';
+    src: url("../3rdParty/bootstrap/fonts/glyphiconsHalflingsRegular.ttf");
+}
+body {
+    font-family: 'glyphiconsHalflingsRegular';
+    text-align:center;
+}
+h1, h2, h3 {
+    font-family: 'spaceship';
+}
+
+input[type="text"], input[type="password"] {
+    text-align:center;
+    border: solid transparent;
+    outline:none
+        background-color:#ffffff;
+    text-decoration:none;
+}
+input[type="submit"] {
+    border: solid transparent;
+    background-color: gainsboro;
+    color:#428bca;
+}
+div {
+    border-top: groove black;
+    text-align: center;
+    padding: 10px;
+    margin-left: 200px;
+    margin-right: 200px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+table, tr, th, td {
+    border: solid black;
+    margin: 0 auto;
+    padding: 5px;
+}

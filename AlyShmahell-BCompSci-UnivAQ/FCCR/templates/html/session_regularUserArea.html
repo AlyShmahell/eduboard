@@ -1,0 +1,24 @@
+<h1>Federal Corporation Claim Registry</h1>
+<h2>Corporation Area</h2>
+<div>
+    <h6> Welcome {{regularUser}} </h6>
+    <h3>Here are the assets to which you have claim for:</h3>
+    {{regularUserAssetsTable}}
+</div>
+<div>
+    <h3>Asset Claim Form, please name the asset you wish to claim and specify its location below:</h3>
+    <form method="post" name="insert-user-data">
+        <label>Asset Name</label><input type="text" name="assetname"><br/>
+        <label>Asset Coordinates</label><input type="text" name="assetcoordinates"><br/>
+        <input type="submit">
+    </form>
+</div>
+<div>
+    <h3> Inspection Requests:</h3>
+    <p>
+        {{inspectionRequest}}
+    </p>
+</div>
+<div>
+    <p><a href="/public/logout.php">Logout</a></p>
+</div>

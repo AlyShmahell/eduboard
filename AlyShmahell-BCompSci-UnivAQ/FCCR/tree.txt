@@ -1,0 +1,76 @@
+.
+├── [drwxr-xr-x]  backup
+│   └── [drwxr-xr-x]  mysql
+│       ├── [-rwxr-xr-x]  database.init.sh
+│       ├── [-rw-rw-r--]  webtech-dump.sql
+│       └── [-rwxr-xr-x]  webtech.sql
+├── [drwxr-xr-x]  documentation
+│   └── [drwxr-xr-x]  diagrams
+│       ├── [-rw-rw-r--]  FCCR-ERD.graphml
+│       └── [-rw-rw-r--]  FCCR-ERD.pdf
+├── [drwxr-xr-x]  includes
+│   ├── [-rwxr-xr-x]  databaseConnect.php
+│   ├── [-rwxr-xr-x]  functions.php
+│   └── [drwxr-xr-x]  Regina
+│       ├── [-rwxr-xr-x]  LICENSE
+│       ├── [drwxr-xr-x]  manipulateSelect
+│       │   ├── [-rwxr-xr-x]  manipulateSelect.php
+│       │   ├── [-rwxr-xr-x]  selectBody.html
+│       │   ├── [-rwxr-xr-x]  selectFooter.html
+│       │   └── [-rwxr-xr-x]  selectHeader.html
+│       ├── [drwxr-xr-x]  manipulateTable
+│       │   ├── [-rwxr-xr-x]  cellData.html
+│       │   ├── [-rwxr-xr-x]  columnTitle.html
+│       │   ├── [-rwxr-xr-x]  index.php
+│       │   ├── [-rwxr-xr-x]  manipulateTable.php
+│       │   ├── [-rwxr-xr-x]  rowEnd.html
+│       │   ├── [-rwxr-xr-x]  rowStart.html
+│       │   ├── [-rwxr-xr-x]  tableEnd.html
+│       │   └── [-rwxr-xr-x]  tableStart.html
+│       ├── [-rwxr-xr-x]  README
+│       └── [-rwxr-xr-x]  Regina.inc.php
+├── [-rwxr-xr-x]  index.php
+├── [-rwxr-xr-x]  LICENSE
+├── [drwxr-xr-x]  public
+│   ├── [-rwxr-xr-x]  login.php
+│   ├── [-rwxr-xr-x]  logout.php
+│   ├── [-rwxr-xr-x]  register.php
+│   └── [-rwxr-xr-x]  session.php
+├── [drwxr-xr-x]  templates
+│   ├── [drwxr-xr-x]  3rdParty
+│   │   ├── [drwxr-xr-x]  bootstrap
+│   │   │   ├── [drwxr-xr-x]  css
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap.css
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap.css.map
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap.min.css
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap.min.css.map
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap-theme.css
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap-theme.css.map
+│   │   │   │   ├── [-rwxr-xr-x]  bootstrap-theme.min.css
+│   │   │   │   └── [-rwxr-xr-x]  bootstrap-theme.min.css.map
+│   │   │   ├── [drwxr-xr-x]  fonts
+│   │   │   │   ├── [-rwxr-xr-x]  glyphiconsHalflingsRegular.eot
+│   │   │   │   ├── [-rwxr-xr-x]  glyphiconsHalflingsRegular.svg
+│   │   │   │   ├── [-rwxr-xr-x]  glyphiconsHalflingsRegular.ttf
+│   │   │   │   ├── [-rwxr-xr-x]  glyphiconsHalflingsRegular.woff
+│   │   │   │   └── [-rwxr-xr-x]  glyphiconsHalflingsRegular.woff2
+│   │   │   └── [drwxr-xr-x]  js
+│   │   │       ├── [-rwxr-xr-x]  bootstrap.js
+│   │   │       ├── [-rwxr-xr-x]  bootstrap.min.js
+│   │   │       └── [-rwxr-xr-x]  npm.js
+│   │   └── [drwxr-xr-x]  SpaceshipBullet
+│   │       ├── [-rwxr-xr-x]  NOTICE
+│   │       └── [-rwxr-xr-x]  SpaceshipBullet.ttf
+│   ├── [drwxr-xr-x]  css
+│   │   └── [-rwxr-xr-x]  style.css
+│   └── [drwxr-xr-x]  html
+│       ├── [-rwxr-xr-x]  failure.html
+│       ├── [-rwxr-xr-x]  footer.html
+│       ├── [-rwxr-xr-x]  header.html
+│       ├── [-rwxr-xr-x]  login.html
+│       ├── [-rwxr-xr-x]  register.html
+│       ├── [-rwxr-xr-x]  session_adminUserArea.html
+│       └── [-rwxr-xr-x]  session_regularUserArea.html
+└── [-rwxr-xr-x]  tree.txt
+
+18 directories, 55 files
