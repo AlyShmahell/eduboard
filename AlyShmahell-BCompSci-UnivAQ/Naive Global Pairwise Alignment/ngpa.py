@@ -41,9 +41,17 @@ print(sequences)
 
 for i in sequences:
 	for j in database:
+		print "first shift"
 		for k in range(len(i)):
-			for l,m in zip(range(k,len(i)),range(len(i))):
+			for l,m in zip(range(k,len(i)),range(len(j))):
 					if i[l]==j[m]:
+						print "M"
+					else:
+						print "N"
+		print "second shift"
+		for k in range(len(j)):
+			for l,m in zip(range(k,len(j)),range(len(i))):
+					if j[l]==i[m]:
 						print "M"
 					else:
 						print "N"
