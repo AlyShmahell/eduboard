@@ -1,58 +1,62 @@
 import sys
-
-scoreMatrixFile = open("./ngpaScore").read()
 scoreMatrix = []
-temporary = []
-for i in scoreMatrixFile:
-	if i==' ':
-		continue
+database = []
+sequences = []
+
+def score(nucSeq, nucDB):
+	if nucSeq == nucDB:
+		print "M"
 	else:
+		print "N"
+
+def ngpa():
+	for i in sequences:
+		for j in database:
+			print "first shift"
+			for k in range(len(i)):
+				for l,m in zip(range(k,len(i)),range(len(j))):
+					score(i[l],j[m])
+			print "second shift"
+			for k in range(len(j)):
+				for l,m in zip(range(k,len(j)),range(len(i))):
+					score(j[l],i[m])
+
+
+if __name__=='__main__':
+	scoreMatrixFile = open("./ngpaScore").read()
+	temporary = []
+	for i in scoreMatrixFile:
+		if i==' ':
+			continue
+		else:
+			if i=='\n':
+				scoreMatrix.append(temporary)
+				temporary = []
+			else:
+				temporary.append(int(i))
+
+	for i in scoreMatrix:
+		print(i)
+
+	databaseFile = open("./ngpaDatabase").read()
+	temporary = []
+	for i in databaseFile:
 		if i=='\n':
-			scoreMatrix.append(temporary)
+			database.append(temporary)
 			temporary = []
 		else:
-			temporary.append(int(i))
+			temporary.append(i)
+	print(database)
 
-for i in scoreMatrix:
-	print(i)
+	sequencesFile = open("./ngpaSequences").read()
+	temporary = []
+	for i in sequencesFile:
+		if i=='\n':
+			sequences.append(temporary)
+			temporary = []
+		else:
+			temporary.append(i)
 
-databaseFile = open("./ngpaDatabase").read()
-database = []
-temporary = []
-for i in databaseFile:
-	if i=='\n':
-		database.append(temporary)
-		temporary = []
-	else:
-		temporary.append(i)
-print(database)
+	print(sequences)
 
-sequencesFile = open("./ngpaSequences").read()
-sequences = []
-temporary = []
-for i in sequencesFile:
-	if i=='\n':
-		sequences.append(temporary)
-		temporary = []
-	else:
-		temporary.append(i)
-
-print(sequences)
-
-for i in sequences:
-	for j in database:
-		print "first shift"
-		for k in range(len(i)):
-			for l,m in zip(range(k,len(i)),range(len(j))):
-					if i[l]==j[m]:
-						print "M"
-					else:
-						print "N"
-		print "second shift"
-		for k in range(len(j)):
-			for l,m in zip(range(k,len(j)),range(len(i))):
-					if j[l]==i[m]:
-						print "M"
-					else:
-						print "N"
-				
+	ngpa()
