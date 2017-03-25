@@ -33,8 +33,12 @@ int main(int argc, char** argv)
     ifstream ngpaScore("ngpa.score");
     ifstream ngpaInput("ngpa.input");
     ifstream ngpaDB("ngpa.db1");
-    vector< vector<char> > input;
-    vector< vector<char> > database;
+    vector< string > input;
+    vector< string > database;
     string temp;
-    while(getline(ngpaScore,temp)) printf("%s",temp.c_str());
+    while(getline(ngpaScore,temp))
+    {
+    printf("%s",temp.c_str());
+    input.push_back(temp);
+    }
 }
