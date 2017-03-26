@@ -1,4 +1,4 @@
-/**
+/*
     MIT License
 
     Copyright (c) 2017 Aly Shmahell
@@ -21,6 +21,10 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 */
+
+/**
+ * for future development only, not relavent nor is complete for the time being
+ */
 
 #include <stdio.h>
 #include <fstream>
