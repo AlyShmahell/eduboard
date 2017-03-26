@@ -1,62 +1,63 @@
 import sys
+import numpy as np
 scoreMatrix = []
 database = []
 sequences = []
+metadata = []
 
 def score(nucSeq, nucDB):
-	if nucSeq == nucDB:
-		print "M"
-	else:
-		print "N"
+	return scoreMatrix[metadata.index(nucSeq)][metadata.index(nucDB)]
 
 def ngpa():
 	for i in sequences:
+		totalmax = -1000000000
 		for j in database:
 			print "first shift"
+			submax = -1000000000
+			totalmax = max(totalmax,submax)
 			for k in range(len(i)):
+				alignmentscore = 0
 				for l,m in zip(range(k,len(i)),range(len(j))):
-					score(i[l],j[m])
+					alignmentscore = alignmentscore + score(i[l],j[m])
+				submax = max(submax,alignmentscore)
 			print "second shift"
+			totalmax = max(totalmax,submax)
 			for k in range(len(j)):
+				alignmentscore = 0
 				for l,m in zip(range(k,len(j)),range(len(i))):
-					score(j[l],i[m])
+					alignmentscore = alignmentscore + score(j[l],i[m])
+				submax = max(submax,alignmentscore)
+			totalmax = max(totalmax,submax)
+		print totalmax
 
 
 if __name__=='__main__':
-	scoreMatrixFile = open("./ngpaScore").read()
-	temporary = []
-	for i in scoreMatrixFile:
-		if i==' ':
-			continue
-		else:
+	with open('ngpaMetadata') as metadataFile:
+		metadata =[item for sublist in map(list,(value.rstrip('\n') for value in metadataFile)) for item in sublist] 
+	print metadata
+	with open('ngpaScore') as scoreMatrixFile:
+		scoreMatrix = [[int(value) for value in line.split()] for line in scoreMatrixFile]
+	print scoreMatrix
+
+	with open(sys.argv[1],'r') as databaseFile:
+		temporary = []
+		for i in databaseFile.read():
 			if i=='\n':
-				scoreMatrix.append(temporary)
+				database.append(temporary)
 				temporary = []
 			else:
-				temporary.append(int(i))
+				temporary.append(i)
+		print(database)
 
-	for i in scoreMatrix:
-		print(i)
+	with open(sys.argv[2],'r') as sequencesFile:
+		temporary = []
+		for i in sequencesFile.read():
+			if i=='\n':
+				sequences.append(temporary)
+				temporary = []
+			else:
+				temporary.append(i)
 
-	databaseFile = open("./ngpaDatabase").read()
-	temporary = []
-	for i in databaseFile:
-		if i=='\n':
-			database.append(temporary)
-			temporary = []
-		else:
-			temporary.append(i)
-	print(database)
-
-	sequencesFile = open("./ngpaSequences").read()
-	temporary = []
-	for i in sequencesFile:
-		if i=='\n':
-			sequences.append(temporary)
-			temporary = []
-		else:
-			temporary.append(i)
-
-	print(sequences)
+		print(sequences)
 
 	ngpa()
