@@ -14,6 +14,18 @@ database = []
 sequences = []
 alphabet = []
 
+def cleanList(superlist, cleaningVector):
+	superesult = [[] for i in range(len(alphabet))]
+	for normalist in superlist:
+		normalresult = []
+		for sublist in normalist:
+			if sublist[0] in cleaningVector:
+				normalresult.append(sublist)
+		if normalresult:
+			superesult.append(normalresult)
+	superesult = [x for x in superesult if x]
+	return superesult
+
 # counts the occurances of every unique element in a list, orders them by value, and returns their count
 def count(superlist):
 	dictionary = {}
@@ -24,7 +36,7 @@ def count(superlist):
 			else:
 				dictionary[sublist[0]] = 1
 	
-	return sorted(dictionary.items(), key=operator.itemgetter(1))
+	return sorted(dictionary.items(), key=operator.itemgetter(1),reverse=True)
 
 # retrieves `correspondent pairwise substitution score` from the score matrix
 def findScore(nucSeq, nucDB):
@@ -69,12 +81,17 @@ def fasta():
 			for nucCount in range(4):
 				for seqWordTableVal in seqWordTable[nucCount]:
 					for dbWordTableVal in dbWordTable[nucCount]:
-						offsetTable[nucCount].append([seqWordTableVal-dbWordTableVal,[seqWordTableVal,dbWordTableVal]])
-			# scoring
-			print offsetTable
-			print ("\n")
-			print count(offsetTable)
-			print ("\n")
+						if seqWordTableVal-dbWordTableVal >= 0:
+							offsetTable[nucCount].append([seqWordTableVal-dbWordTableVal,[seqWordTableVal,dbWordTableVal]])
+			# finding the best regions of alignment
+			# counting the occurance of matches for each letter
+			offsetTableCount = count(offsetTable)
+			# taking only the longest streaks
+			offsetTableCount = offsetTableCount[:max(len(offsetTableCount), 10)]
+			# cleaning the hashtable from matches that were not significant
+			offsetTable = cleanList(offsetTable, [x[0] for x in offsetTableCount])
+			# TODO : cleaning least scoring overlapping regions
+			# TODO : connecting the regions & rescoring
 				
 				
 			
