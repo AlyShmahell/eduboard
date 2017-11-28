@@ -19,14 +19,14 @@ For rented ships you also want to know the master data and contacts of the renti
 You also need to register your rental contracts by storing the number of registration of the act, date of stipulation and period of availability of the vehicle.  
 Note that each contract concerns the chartering of a single ship owned by a single renting company for a single period of time during which the ship may perform various missions.  
 
-For each ship it is also defined the type of crew it has (crew-type), or rather the number and the
+For each ship it is also defined the type of crew it has (crew-type), that is the number and the
 qualifications for the various roles on-board (e.g a commander, officer, trainer, chef, sailor, etc.).   For each qualification we need to indicate whether licenses or certificates are required to prove the suitability of personnel to the role at hand.  
 On average, each ship will have to embark with about 25 people on-board, divided between the different roles.  
 
 The company organizes about a hundred missions each year identified by a consecutive serial number.   Each mission involves the conveyance of containers, owned by customer companies, from
 a port of departure to a port of destination, following a specific route.  
-A route is defined by an ordered series of markable points (a hundred of them on average), which will be crossed by the ship during navigation.  
-For each point, if we know its geographic coordinates, the expected date and time of crossing, we can anticipate an effective  crossing.  
+A route is defined by an ordered series of relevant points (a hundred of them on average), which will be crossed by the ship during navigation.  
+For each point, we know its geographic coordinates, the expected date and time of crossing, and the effective crossing date and time registered during navigation.  
 For the ports of departure and destination
 (representing the first and last points on the route) will be stored the moments of
 departure and arrival, respectively.  
@@ -34,14 +34,13 @@ departure and arrival, respectively.
 The load of a mission, which according to the ship used will vary between 3000 and 6000 containers,
 must be recorded by storing for each container transported, the code, the type of the container
 content, ownership and data of the relevant transport contract.  
-Note that the the contract of carriage, concluded between a customer company and the naval company, is relative to one specific mission, but can expand to provide the transport of more containers.  
+Note that the the contract of carriage, concluded between a customer company and the naval company, is relative to one specific mission, and provides the transport of one or more containers.  
 Of each contract of transport you want to know the date of subscription and the agreed price.  
 
 Each mission must also be assigned the on-board staff selected from among employees of the company, respecting the "crew-type" defined for the ship associated with the mission itself.  
 
-Every employee should be aware of the ship journal, the master data, and the mission (especially if they are administrative staff or on-board crew who can be assigned to transport missions).  
-For crew members, they must be aware of their job requirements and the roles
-which they can be asked to perform.  
+For each employee is known the serial number, the master data, and the job role (especially if they are administrative staff or on-board crew who can be assigned to transport missions).  
+For the on-board staff, it must be known the owned qualifications and the roles he/she can take on a ship.  
 For each role it is defined the daily cost of the person who will cover it.  
 
 #### The operations provided on the database are as follows:
@@ -56,10 +55,10 @@ mission, check whether:
 a) the assigned role is provided in the crew-type of the ship assigned to the mission;  
 b) the role is still vacant;  
 c) the employee is actually qualified for that role.  
-6. While carrying out a mission, verify the positioning of the vessel in respect to the expected route and estimate the advance or the delay with respect to the expected plan (it is assumed the existence of an automated update of the DB at the time of passage of the ship on any significant point of the route, so the verification will be "triggered" from the same automatic updating operation).  
+6. While carrying out a mission, verify the positioning of the vessel in respect to the expected route and estimate the advance or the delay with respect to the expected plan (it is assumed the existence of an automated update of the DB at the time of passage of the ship on any relevant point of the route, so the verification will be "triggered" from the same automatic updating operation).  
 7. Check if there is a collision risk between the ships used (in practice, verify that there are no common geographic points that intersect with multiple routes with equal planned crossing times; Optionally, to be more realistic, check that the difference of crossing times on common points is not less than one hour; limit this operation to ships for which the planned sailing periods are overlapping).  
 8. Given a mission, verify, based on the contracts stipulated with the customers, that the total number of the containers to be carried  ranges between 80% and 100% of the total capacity of the assigned ship.  
-9.Vice-versa, given a mission and knowing the total number of containers to be transported,
+9. Vice-versa, given a mission and knowing the total number of containers to be transported,
 assign a ship, among those that are not engaged in other missions, which maximizes the load (that is, it has the smallest load capacity among all
 those that are able to hold the required number of containers).  
 10. Regarding the previous operation, if the ship to be assigned is a rented ship, check, as defined in Operation 2, that the mission is carried out in the the validity period of the rental contract.  
