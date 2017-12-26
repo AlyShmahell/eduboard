@@ -8,7 +8,7 @@
     <link type="text/css" rel="stylesheet" href="static/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="static/css/bootstrap.min.css">
     <link type="text/css" rel="stylesheet" href="static/css/font-awesome.css">
-    <link type="text/css" rel="stylesheet" href="static/css/navibus-mercatoriis.css">
+    <link type="text/css" rel="stylesheet" href="static/css/mercatoriis.css">
     <link rel="shortcut icon" href="static/image/favicon.ico" type="image/x-icon" />
     <link rel="icon" href="static/image/favicon.ico" type="image/x-icon" />
     <meta property="og:title" content="Navibus Mercatoriis - Mercantile Ships" />

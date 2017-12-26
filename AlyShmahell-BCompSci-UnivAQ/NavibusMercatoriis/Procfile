@@ -1,1 +1,1 @@
-web: python NavibusMercatoriis.py
+web: python mercatoriis.py
