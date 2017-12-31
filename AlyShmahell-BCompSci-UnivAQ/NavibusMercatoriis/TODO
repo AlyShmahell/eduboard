@@ -5,3 +5,5 @@ Rules of derivation
 volume analysis
 table of operations (with usage frequency)
 # Analysis of redundancies
+
+USE `JOINS` INSTEAD OF `WHERE` when applicable
