@@ -6,4 +6,4 @@ volume analysis
 table of operations (with usage frequency)
 # Analysis of redundancies
 
-USE `JOINS` INSTEAD OF `WHERE` when applicable
+add an outer cursor loop per departure port for choosing proper ship
