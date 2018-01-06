@@ -6,5 +6,3 @@ volume analysis
 table of operations (with usage frequency)
 # Analysis of redundancies
 
-add "wherePorted" column to `Ships` then redesign `triggerPorting` and `chooseProperShip`.
-make sure to update all affected routines.
