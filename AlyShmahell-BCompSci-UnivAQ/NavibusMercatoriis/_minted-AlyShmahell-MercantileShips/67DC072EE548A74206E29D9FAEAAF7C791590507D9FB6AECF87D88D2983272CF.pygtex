@@ -1,0 +1,20 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+ch}{\PYGZsh{}!/bin/bash}
+
+\PYG{c+c1}{\PYGZsh{} install pre\PYGZhy{}requisites}
+sudo apt install apache2 php phpmyadmin mysql\PYGZhy{}server mysql\PYGZhy{}client mysql\PYGZhy{}workbench
+
+\PYG{c+c1}{\PYGZsh{} update apache2 conf file to include phpmyadmin conf file}
+\PYG{k}{if} grep \PYGZhy{}qF \PYG{l+s+s2}{\PYGZdq{}Include /etc/phpmyadmin/apache.conf\PYGZdq{}} /etc/apache2/apache2.conf\PYG{p}{;}\PYG{k}{then}
+	sudo bash \PYGZhy{}c \PYG{l+s+s1}{\PYGZsq{}echo \PYGZdq{}Include /etc/phpmyadmin/apache.conf\PYGZdq{} \PYGZgt{}\PYGZgt{} /etc/apache2/apache2.conf\PYGZsq{}}
+\PYG{k}{fi}
+sudo systemctl restart apache2 \PYG{c+c1}{\PYGZsh{} now to use phpmyadmin, visit the following url: http://127.0.0.1/phpmyadmin}
+
+\PYG{c+c1}{\PYGZsh{} install adminer the right way!}
+sudo mkdir /usr/share/adminer
+sudo wget \PYG{l+s+s2}{\PYGZdq{}http://www.adminer.org/latest.php\PYGZdq{}} \PYGZhy{}O /usr/share/adminer/latest.php
+sudo ln \PYGZhy{}s /usr/share/adminer/latest.php /usr/share/adminer/adminer.php
+\PYG{n+nb}{echo} \PYG{l+s+s2}{\PYGZdq{}Alias /adminer.php /usr/share/adminer/adminer.php\PYGZdq{}} \PYG{p}{|} sudo tee /etc/apache2/conf\PYGZhy{}available/adminer.conf
+sudo a2enconf adminer.conf
+sudo service apache2 restart \PYG{c+c1}{\PYGZsh{} now to use adminer, visit the following url: http://127.0.0.1/adminer.php}
+\end{Verbatim}

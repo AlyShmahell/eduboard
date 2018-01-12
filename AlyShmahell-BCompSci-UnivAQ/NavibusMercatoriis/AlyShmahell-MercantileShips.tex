@@ -12,6 +12,7 @@ footskip=.25in]{geometry}
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{dirtree}
+\usepackage{minted}
 \usepackage{footnotebackref}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -59,25 +60,49 @@ footskip=.25in]{geometry}
 	\end{center}
 		In this document I will showcase the 3 stages of design of the "Mercantile Ships" Database.\\
 		In this effort, and under permission from the requirements file, I made some decisions regarding the techniques and tools used in the design process.\\
-		In some extreme cases I had to settle for less than optimal solution either for conformity purposes (the solution conforms best to the design stage) or for practicality, or for highlighting the optimal solution.\\
+		In some extreme cases I had to settle for a less than optimal solution either for conformity purposes (the solution conforms best to the design stage) or for practicality, or for highlighting the optimal solution.\\
 \newpage
 \section*{\textbf{Design and Tool Choices}}
 Having Ubuntu linux as my main operating system, I had a small set of tools to choose from, the obvious ones anyways.\\
-For the Conceptual Schema Dia was the most suggested on general forums, but it is highly outdated and full of bugs (as tested on my system), also, but it didn't offer any integrated features.\\
+For the Conceptual Schema, Dia was the most suggested on general forums, but it is highly outdated and full of bugs (as tested on my system), also it didn't offer any integrated features.\\
 
 This is why I chose \textbf{MySQL Workbench}, it comes the most recommended from DB professionals, doesn't offer ER design capability, but better, it comes equipped with an EER designer, it offers backward engineering, forward engineering, SQL scripting, python scripting, SQL database connection, and with its SQL linter/debugger, the three stages of the DB design get improved live and professionally.\\
 
 One note on MySQL Workbench, on its default settings, it only cares about relationships that translate into Foreign Keys, all other operations can be added as SQL routines(procedures)/triggers/scripts. Which makes sense, because this is how we actually translate from Conceptual Design to Logical Design.\\
 But, the EER model in MySQL Workbench can be tweaked a little if someone wants to to add non-key-type relations. However, I chose to stick with the defaults.\\
 
+Final note, MySQL Workbench provides both Conceptual EERD and Logical EERD: the first being offered with Crow's Foot Notation, the second with "Matching Columns to Columns" to simulate a graphical logical schema.\\
+
 There are some other tools which I found (rather late), like draw.io, it's just a modeling tool, much like Dia, but it is more up to date and it has some nice features like adding your own shape (you have to script it in xml) so you can represent any special types of entities or relationships that are not present in the default palette.\\
 Also, initially I only looked for tools concerning MySQL, but after doing a big portion of the project, I discovered pgModeler for PostgreSQL, which would have been better in terms of Conceptual Design because it represents non-key-type relations more out of the box and much better.\\
 
+For testing the database I initially used phpMyAdmin, but due to its lack of proper support for delimiters in stored procedure I had to switch to \textbf{Adminer}.\\
+
+As for the documentation, nothing beats \textbf{Latex} and \textbf{texstudio}!
+
 \newpage
-\includepdf[pagecommand={\section*{Conceputal Schema} \thispagestyle{empty}}]{MercantileShips-EER.pdf}
+\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Conceputal Schema - Conceptual EERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{MercantileShips-EER.pdf}
 \newpage
 \includepdf[pagecommand={\thispagestyle{empty}}]{DataDictionary1.pdf}
+\newpage
+\includepdf[pagecommand={\thispagestyle{empty}}]{BusinessRules.pdf}
+\newpage
+\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Simulating Logical Schema - Logical EERD with Column Matching Notation }} \thispagestyle{empty}}]{MercantileShips-EER-Column.pdf}
+\newpage
+\includepdf[pagecommand={\thispagestyle{empty}}]{Volumes.pdf}
+\newpage
+\includepdf[pagecommand={\thispagestyle{empty}}]{Accesses.pdf}
+\subsection*{Notes on Efficiency}
+As we can see in the table of accesses, the \textbf{Routes} table is accessed very rarely, and it imposes an un-necessary structural redundancy (only contains missionNo), therefor should be deleted and substituted with the \textbf{"missionNo"} attribute in the \textbf{Missions} table.\\
 
+Also, the \textbf{ownShips} table is accessed as frequently as the \textbf{Ships} table, but poses another un-necessary structural redundancy, therefor should be deleted and substituted with a binary attribute \textbf{"isOwn"} in the \textbf{Ships} table.
+\newpage
+\section*{Physical Schema - MySQL Code (Tables, Constraints, Triggers, Procedures)}
+\inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{mercantileShips.sql}
+\newpage
+\section*{Tool setup on Ubuntu 16.04 (Bash File)}
+\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{setup.sh}
+\newpage
 \begin{flushleft}
 	\section*{\textbf{Code Repository}}
 \end{flushleft}
@@ -87,5 +112,10 @@ Also, initially I only looked for tools concerning MySQL, but after doing a big 
 	\begin{center}
 		\url{https://github.com/AlyShmahell/Navibus-Mercatoriis}
 	\end{center}
-	
+\begin{thebibliography}{}
+\bibitem {MySQL 5.7 Reference Manual}
+\textbf{MySQL 5.7 Reference Manual}: https://downloads.mysql.com/docs/refman-5.7-en.a4.pdf
+\bibitem {MySQL Workbench 6.3 Reference Manual}
+\textbf{MySQL Workbench 6.3 Reference Manual:} https://downloads.mysql.com/docs/workbench-en.a4.pdf
+\end{thebibliography}
 \end{document}
