@@ -22,6 +22,9 @@ footskip=.25in]{geometry}
 
 \newcommand{\folder}[2]{}
 
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
 
 \lstdefinestyle{mystyle}{
 	backgroundcolor=\color{backcolour},   
@@ -81,13 +84,72 @@ For testing the database I initially used phpMyAdmin, but due to its lack of pro
 As for the documentation, nothing beats \textbf{Latex} and \textbf{texstudio}!
 
 \newpage
-\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Conceputal Schema - Conceptual EERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{MercantileShips-EER.pdf}
+\section*{\normalsize{Conceputal Schema}}
+In this schema I used Crow's Foot notation, mainly because it is the one adopted by the two CASE tools I used (MySQL WorkBench, draw.io).\\
+
+With this notation, relationships cannot have attributes. Where necessary, relationships are promoted to entities in their own right. Where relationships are not promoted to entities, they represent external identifiers as foreign key or index attributes present in both entities on the left and right hand side.\\
+
+This results in the following:
+\begin{itemize}
+	\item adaptation of external identifiers into foreign keys early on in the conceptual design stage.
+	\item selection of primary identifiers can also be done in the conceptual design stage.
+	\item many-to-many relationships are replaced with entities right in the conceptual design stage.
+\end{itemize}
+\includepdf[width=\textwidth, height=\textheight, pagecommand={\section*{\normalsize{Conceptual ERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{mercantileShips-Conceptual.pdf}
 \newpage
 \includepdf[pagecommand={\thispagestyle{empty}}]{DataDictionary1.pdf}
 \newpage
 \includepdf[pagecommand={\thispagestyle{empty}}]{BusinessRules.pdf}
 \newpage
-\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Simulating Logical Schema - Logical EERD with Column Matching Notation }} \thispagestyle{empty}}]{MercantileShips-EER-Column.pdf}
+\section*{\normalsize{From ER to Relational Model}}
+During the Conceptual design stage I made sure to analyze and reduce redundancies as I was constructing the entities, I also made sure no entity crossed with another and therefor there was no need for collapse or merger of entities (except for the route entity which I alerted to its presence in the \hyperlink{page.13}{Notes on Efficiency} section).\\
+
+The only thing left to do was removal of a generalization, which I chose to do it following the \textbf{"Substitution of the generalization with relationships"} method.\\
+
+The resulting translated tables were as the following:
+\begin{flushleft}
+	Ships(\underline{IMO}, name, tonnage, draft, autonomy, nationality)\\
+	ownShips(\underline{IMO})\\
+	rentalShips(\underline{IMO}, masterData, rentalContacts)\\
+	rentalCompanies(\underline{rentalCompanyIVA},rentalCompanyName)\\
+	rentalContracts(\underline{registrationNo}, rentalCompanyIVA, IMO, rentStartDate, rentEndDate, availability, eSignature)\\
+	wherePorted(\underline{IMO}, portCoordinates, ported)\\
+	haveCrew(\underline{IMO}, crewType)\\
+	Crews(\textit{crewType}, role, qualifications, certificate, vacancies, salary)\footnote{\label{italic1}attributes in italic represent indexes}\\
+	Missions(\underline{missionNo}, IMO, missionStartDate, missionEndDate, missionLoad, currCoordinates, advanceDelay, missionValidity)\\
+	Customers(\underline{customerIVA}, customerName)\\
+	Employees(\underline{id}, employeeName, qualifications)\\
+	carriageContracts(\underline{missionNo}, customerIVA, stipulationDate, price, eSignature, contractStatus)\\
+	haveStaff (\textit{id}, \textit{missionNo}, role, qualifications)\footnoteref{italic1}\\
+	Containers(\textit{missionNo}, containerNo, contentType, ownerData)\footnoteref{italic1}\\
+	Routes(\underline{missionNo})\\
+	Ports(\textit{missionNo}, portCoordinates, departureArrival, portingDate, effectivelyPorted)\footnoteref{italic1}\\
+	Points(\textit{missionNo}, coordinates, expectedCrossing, effectiveCrossing)\footnoteref{italic1}\\
+\end{flushleft}
+\newpage
+The resulting translated foreign key relations were as the following:
+\begin{flushleft}
+	\verb|fk_rentalContracts_rentalCompanies1|(rentalContracts.rentalCompanyIVA, rentalCompanies.rentalCompanyIVA)\\
+	\verb|fk_rentalContracts_rentalShips1|(rentalContracts.IMO, rentalShips.IMO)\\
+	\verb|fk_rentalShips_Ships1|(rentalShips.IMO,Ships.IMO)\\
+	\verb|fk_ownShips_Ships1|(ownShips.IMO, Ships.IMO)\\
+	\verb|fk_wherePorted_Ships1|(wherePorted.IMO, Ships.IMO)\\
+	\verb|fk_haveCrew_Ships1|(haveCrew.IMO, Ships.IMO)\\
+	\verb|fk_Crews_haveCrew1|(Crews.crewType, haveCrews.crewType)\\
+	\verb|fk_Missions_Ships1|(Missions.IMO, Ships.IMO)\\
+	\verb|fk_carriageContract_Customer1|(carriageContracts.customerIVA, Customers.customerIVA)\\
+	\verb|fk_Missions_carriageContracts1|(Missions.MissionNo, carriageContracts.MissionNo)\\
+	\verb|fk_haveStaff_Employees1|(haveStaff.id, Employees.id)\\
+	\verb|fk_haveStaff_Missions1|(haveStaff.missionNo, Missions.missionNo)\\
+	\verb|fk_Loads_Missions1|(Containers.missionNo, Missions.missionNo)\\
+	\verb|fk_Routes_Missions1|(Routes.missionNo, Missions.missionNo)\\
+	\verb|fk_Ports_Routes1|(Ports.missionNo, Routes.missionNo)\\
+	\verb|fk_Points_Routes1|(Points.missionNo, Routes.missionNo)\\
+\end{flushleft}
+\newpage
+\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Relational EERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{MercantileShips-EER.pdf}
+\newpage
+\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Logical EERD with Column Matching Notation }} \thispagestyle{empty}}]{MercantileShips-EER-Column.pdf}
 \newpage
 \includepdf[pagecommand={\thispagestyle{empty}}]{Volumes.pdf}
 \newpage
