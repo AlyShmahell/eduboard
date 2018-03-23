@@ -1,7 +1,25 @@
 #!/bin/bash
 
-	# taken from https://docs.docker.com/install/linux/docker-ee/ubuntu/ with some modifications
+	# install python pip
+	sudo apt install python-pip python-software-properties
+	# install required pip packages (tensorflow, jupyter,...etc)
+	echo "installing scipy, numpy, matplotlib, pyqt5, pycuda, theano, lasagne..."
+	sudo pip3 install sympy scipy numpy matplotlib pyqt5 pycuda
+	sudo pip2 install sympy scipy numpy matplotlib pyqt5 pycuda
+	sudo pip2 install --upgrade https://github.com/Theano/Theano/archive/master.zip
+	sudo pip3 install --upgrade https://github.com/Theano/Theano/archive/master.zip
+	sudo pip3 install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+	sudo pip2 install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+	echo "installing jupyter"
+	sudo pip3 install jupyter
+	sudo pip2 install jupyter
+	echo "installing tensorflow..."
+	sudo pip3 install seaborn
+	sudo pip3 install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp35-cp35m-linux_x86_64.whl
+	sudo pip2 install seaborn
+	sudo pip2 install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
 
+	# taken from https://docs.docker.com/install/linux/docker-ee/ubuntu/ with some modifications
 	# remove old versions of docker
 	sudo apt-get remove docker docker-engine docker-ce docker.io
 	sudo apt install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates software-properties-common
@@ -12,7 +30,6 @@
 	sudo apt install docker-ce
 	sudo groupadd docker
 	sudo usermod -aG docker $USER
-
 	# install cuda toolkit and nvidia drivers
 	wget "http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_9.1.85-1_amd64.deb"
 	sudo dpkg -i cuda-repo-ubuntu1604_9.1.85-1_amd64.deb
@@ -21,7 +38,6 @@
 	sudo apt install nvidia-390 nvidia-390-dev cuda nvidia-cuda-dev nvidia-cuda-toolkit 
 
 	# taken from https://github.com/NVIDIA/nvidia-docker without modification
-
 	# If you have nvidia-docker 1.0 installed: we need to remove it and all existing GPU containers
 	docker volume ls -q -f driver=nvidia-docker | xargs -r -I{} -n1 docker ps -q -a -f volume={} | xargs -r docker rm -f
 	sudo apt-get purge -y nvidia-docker
