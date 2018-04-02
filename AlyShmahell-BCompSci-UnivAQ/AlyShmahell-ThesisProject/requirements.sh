@@ -17,7 +17,7 @@
 	sudo pip3 install seaborn
 	sudo pip3 install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp35-cp35m-linux_x86_64.whl
 	sudo pip2 install seaborn
-	sudo pip2 install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
+	sudo pip2 install https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.6.0-cp27-none-linux_x86_64.whl
 
 	# taken from https://docs.docker.com/install/linux/docker-ee/ubuntu/ with some modifications
 	# remove old versions of docker
