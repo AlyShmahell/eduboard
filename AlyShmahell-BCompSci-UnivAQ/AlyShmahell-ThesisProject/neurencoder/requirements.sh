@@ -5,42 +5,45 @@
 	sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
 	sudo apt update
 	sudo apt install nvidia-390 nvidia-390-dev cuda-9-0 nvidia-cuda-dev nvidia-cuda-toolkit
+	
+        
+        # install cuDNN, obtained from : https://developer.nvidia.com/rdp/cudnn-download, after agreeing to the Software License Agreement
+	sudo dpkg -i ./third-party/NVIDIA/cuDNN/libcudnn7_7.0.5.15-1+cuda9.1_amd64.deb
+	sudo dpkg -i ./third-party/NVIDIA/cuDNN/libcudnn7-dev_7.0.5.15-1+cuda9.1_amd64.deb
+	sudo dpkg -i ./third-party/NVIDIA/cuDNN/libcudnn7-doc_7.0.5.15-1+cuda9.1_amd64.deb
+	
+	
+	# install pip, python-dev
+	sudo apt install python-pip python-software-properties python-dev python3-pip python3-software-properties python3-dev
+	# setup environment variables
 	export PATH=/usr/local/cuda-9.0/bin${PATH:+:${PATH}}
 	export LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/extras/CUPTI/lib64
         export CUDA_HOME=/usr/local/cuda-9.0
-        
-        # install cuDNN
-	sudo dpkg -i ./third-party/libcudnn7_7.0.5.15-1+cuda9.1_amd64.deb
-	sudo dpkg -i ./third-party/libcudnn7-dev_7.0.5.15-1+cuda9.1_amd64.deb
-	sudo dpkg -i ./third-party/libcudnn7-doc_7.0.5.15-1+cuda9.1_amd64.deb
-	
-	
-	
-	# install python pip
-	sudo apt install --no-cache-dir python-pip python-software-properties
+	# install numpy, matplot
 	sudo pip3 install --no-cache-dir numpy matplotlib
 	sudo pip2 install --no-cache-dir numpy matplotlib
-	echo "installing jupyter"
+	# install jupyter
 	sudo pip3 install --no-cache-dir jupyter
 	sudo pip2 install --no-cache-dir jupyter
-	echo "installing tensorflow..."
+	# install tensorflow, seaborn
 	sudo pip3 install --no-cache-dir seaborn
 	sudo pip3 install --no-cache-dir tensorflow-gpu
 	sudo pip2 install --no-cache-dir seaborn
 	sudo pip2 install --no-cache-dir tensorflow-gpu
+	
 
 	# taken from https://docs.docker.com/install/linux/docker-ee/ubuntu/ with some modifications
 	# remove old versions of docker
 	sudo apt-get remove docker docker-engine docker-ce docker.io
-	#install pre-requisites
+	# install pre-requisites
 	sudo apt install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates software-properties-common
-	# add repository and keys
+	# add repository and key
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 	sudo apt-key fingerprint 0EBFCD88
 	sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 	sudo apt update
-	#install docker-ce and add it to its proper group
+	# install docker-ce and add it to its proper group
 	sudo apt install docker-ce
 	sudo groupadd docker
 	sudo usermod -aG docker $USER
