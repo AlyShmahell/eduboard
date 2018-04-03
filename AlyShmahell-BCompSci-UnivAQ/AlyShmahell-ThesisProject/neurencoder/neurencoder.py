@@ -97,10 +97,10 @@ class NeurEncoder(object):
 	def train(self):
 		tf.global_variables_initializer().run()
 		for epoch in range(1, self.epochs+1):
-			print 'Training Alice and Bob, Epoch:', epoch
+			print ('Training Alice and Bob, Epoch:', epoch)
 			msg_val, key_val = self.gen_data(tensor_rank_multiplier=self.batch_size)
 			self.iterate('bob', msg_val, key_val)
-			print 'Training Eve, Epoch:', epoch
+			print ('Training Eve, Epoch:', epoch)
 			msg_val, key_val = self.gen_data(tensor_rank_multiplier=self.batch_size*2)
 			self.iterate('eve', msg_val, key_val)
 		self.display_results()
@@ -122,5 +122,5 @@ class NeurEncoder(object):
 		pyplot.show()
 
 if __name__ == '__main__':
-	with tf.Session() as sess:
+	with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
 		neurencoder = NeurEncoder(sess)
