@@ -25,19 +25,16 @@ class NeurEncoder(object):
 		self.build_model()
 		self.train()
 		
-	def init_weights(self, name, shape):
-		return tf.get_variable(name, shape=shape, initializer=tf.contrib.layers.xavier_initializer())
-		
-	def execute_1D_convolution(self, layer, filter_shape, stride, name):
+	def build_1D_convolution(self, layer, filter_shape, stride, name):
 		with tf.variable_scope(name):
 			weight_filter = tf.get_variable('w', shape=filter_shape, initializer=tf.contrib.layers.xavier_initializer())
 			return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
 		
-	def execute_4_1D_convolutions(self, hidden_layer, name):
-		convolution_0 = tf.nn.leaky_relu(self.execute_1D_convolution(hidden_layer, self.FILTERS[0], stride=1, name=name+'_conv0'))
-		convolution_1 = tf.nn.leaky_relu(self.execute_1D_convolution(convolution_0, self.FILTERS[1], stride=2, name=name+'_conv1'))
-		convolution_2 = tf.nn.leaky_relu(self.execute_1D_convolution(convolution_1, self.FILTERS[2], stride=1, name=name+'_conv2'))
-		convolution_3 = tf.nn.tanh(self.execute_1D_convolution(convolution_2, self.FILTERS[3], stride=1, name=name+'_conv3'))
+	def build_4_1D_convolutions(self, hidden_layer, name):
+		convolution_0 = tf.nn.leaky_relu(self.build_1D_convolution(hidden_layer, self.FILTERS[0], stride=1, name=name+'_conv0'))
+		convolution_1 = tf.nn.leaky_relu(self.build_1D_convolution(convolution_0, self.FILTERS[1], stride=2, name=name+'_conv1'))
+		convolution_2 = tf.nn.leaky_relu(self.build_1D_convolution(convolution_1, self.FILTERS[2], stride=1, name=name+'_conv2'))
+		convolution_3 = tf.nn.tanh(self.build_1D_convolution(convolution_2, self.FILTERS[3], stride=1, name=name+'_conv3'))
 		return convolution_3
 	
 	def gen_data(self, tensor_rank_multiplier):
@@ -49,7 +46,7 @@ class NeurEncoder(object):
 		for i in range(no_of_FC_layers-1):
 			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[name][i+1]))
 		hidden_layer = tf.expand_dims(fc_layer, 2)
-		net = tf.squeeze(self.execute_4_1D_convolutions(hidden_layer, name))
+		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, name))
 		return net
 
 	def build_model(self):
@@ -59,10 +56,11 @@ class NeurEncoder(object):
 					}
 		self.weights = {}
 		for net_name in self.model_NoFCL:
-			self.weights[net_name] = [self.init_weights(
+			self.weights[net_name] = [tf.get_variable(
 							net_name+"_w"+str(NoFCL), 
-							[(1,2)[net_name=='alice' or net_name=='bob' or 
-									(net_name=='eve' and NoFCL>0)]*self.msg_len, 2*self.msg_len]) 
+							[(self.key_len,0)[net_name=='eve' and NoFCL==0]+self.msg_len,
+							 self.key_len+self.msg_len],
+								initializer=tf.contrib.layers.xavier_initializer()) 
 										for NoFCL in range(self.model_NoFCL[net_name])]
 
 		self.alice = self.build_net('alice', 
