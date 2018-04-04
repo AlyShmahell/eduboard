@@ -41,12 +41,17 @@ class NeurEncoder(object):
 		return (np.random.randint(0, 2, size=(tensor_rank_multiplier, self.msg_len))*2-1),\
 		   	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.key_len))*2-1)
 
-	def build_net(self, name, net_input, no_of_FC_layers):
-		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, self.weights[name][0]))
-		for i in range(no_of_FC_layers-1):
-			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[name][i+1]))
+	def build_net(self, net_name, net_input, no_of_FC_layers):
+		weights = [tf.get_variable(net_name+"_w"+str(NoFCL), 
+						[(self.key_len,0)[net_name=='eve' and NoFCL==0]+self.msg_len, 
+							self.key_len+self.msg_len],
+								initializer=tf.contrib.layers.xavier_initializer()) 
+										for NoFCL in range(self.model_NoFCL[net_name])]
+		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, weights[0]))
+		for i in range(1, no_of_FC_layers):
+			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, weights[i]))
 		hidden_layer = tf.expand_dims(fc_layer, 2)
-		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, name))
+		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, net_name))
 		return net
 
 	def build_model(self):
@@ -54,14 +59,6 @@ class NeurEncoder(object):
 					'msg': tf.placeholder("float", [None, self.msg_len]),
 					'key': tf.placeholder("float", [None, self.key_len])
 					}
-		self.weights = {}
-		for net_name in self.model_NoFCL:
-			self.weights[net_name] = [tf.get_variable(
-							net_name+"_w"+str(NoFCL), 
-							[(self.key_len,0)[net_name=='eve' and NoFCL==0]+self.msg_len,
-							 self.key_len+self.msg_len],
-								initializer=tf.contrib.layers.xavier_initializer()) 
-										for NoFCL in range(self.model_NoFCL[net_name])]
 
 		self.alice = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key']],1), self.model_NoFCL['alice'])
