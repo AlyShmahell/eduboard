@@ -3,14 +3,14 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as pyplot
 import seaborn
-from hyper_parameters import *
+from hyper_parameters_asymmetric import *
 
 class NeurEncoder(object):
 	def __init__(self, sess):
 
 		self.sess = sess
 		self.msg_len = MSG_LEN
-		self.key_len = KEY_LEN
+		self.key_seed_len = kEY_SEED_LEN
 		self.batch_size = BATCH_SIZE
 		self.epochs = EPOCHS
 		self.iterations = ITERATIONS
@@ -21,7 +21,7 @@ class NeurEncoder(object):
 				[RAW_FILTERS[2][0], RAW_FILTERS[1][2], RAW_FILTERS[2][2]],
 				[RAW_FILTERS[3][0], RAW_FILTERS[2][2], 1]
 				]
-		self.model_NoFCL = {'alice': Model_NoFCL[0], 'bob': Model_NoFCL[1], 'eve': 2*(Model_NoFCL[0]+Model_NoFCL[1])}
+		self.model_NoFCL = {'alice': Model_NoFCL[0], 'bob_pub_gen': Model_NoFCL[1], 'bob_priv_gen': Model_NoFCL[1], 'bob_decrypter': Model_NoFCL[1], 'eve': 2*(Model_NoFCL[0]+Model_NoFCL[1]+Model_NoFCL[2]+Model_NoFCL[3])}
 		self.build_model()
 		self.train()
 		
@@ -39,12 +39,12 @@ class NeurEncoder(object):
 	
 	def gen_data(self, tensor_rank_multiplier):
 		return (np.random.randint(0, 2, size=(tensor_rank_multiplier, self.msg_len))*2-1),\
-		   	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.key_len))*2-1)
+		   	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.key_seed_len))*2-1)
 
 	def build_net(self, net_name, net_input, no_of_FC_layers):
 		weights = [tf.get_variable(net_name+"_w"+str(NoFCL), 
-						[(self.key_len,0)[net_name=='eve' and NoFCL==0]+self.msg_len, 
-							self.key_len+self.msg_len],
+						[(self.key_seed_len,0)['_gen' in net_name and NoFCL==0]+self.msg_len, 
+							self.key_seed_len+self.msg_len],
 								initializer=tf.contrib.layers.xavier_initializer()) 
 										for NoFCL in range(self.model_NoFCL[net_name])]
 		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, weights[0]))
@@ -57,61 +57,67 @@ class NeurEncoder(object):
 	def build_model(self):
 		self.placeholders = {
 					'msg': tf.placeholder("float", [None, self.msg_len]),
-					'key': tf.placeholder("float", [None, self.key_len])
+					'key_seed': tf.placeholder("float", [None, self.key_seed_len])
 					}
 
+		self.bob_pub_key_generator = self.build_net('bob_pub_gen', self.placeholders['key_seed'],
+						self.model_NoFCL['bob_pub_gen'])
+		self.bob_priv_key_generator = self.build_net('bob_priv_gen', self.bob_pub_key_generator,
+						self.model_NoFCL['bob_priv_gen'])
 		self.alice = self.build_net('alice', 
-					tf.concat([self.placeholders['msg'], self.placeholders['key']],1), self.model_NoFCL['alice'])
-		self.bob = self.build_net('bob', tf.concat([self.alice, self.placeholders['key']],1), self.model_NoFCL['bob'])
-		self.eve = self.build_net('eve', self.alice, self.model_NoFCL['eve'])
+					tf.concat([self.placeholders['msg'], self.bob_pub_key_generator],1), self.model_NoFCL['alice'])
+		self.bob_decrypter = self.build_net('bob_decrypter', tf.concat([self.alice, self.bob_priv_key_generator],1),
+					self.model_NoFCL['bob_decrypter'])
+		
+		self.eve = self.build_net('eve', tf.concat([self.alice,self.bob_pub_key_generator], 1), self.model_NoFCL['eve'])
 		
 		self.loss_functions = {
-					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
-						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
+					'bob_decrypter': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob_decrypter)),
+						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob_decrypter))
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
 					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
 					}
 		
 		training_variables_raw = tf.trainable_variables()
 		self.training_variables = {
-					'bob' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
+					'bob_decrypter' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
 					'eve': [var for var in training_variables_raw if 'eve_' in var.name]
 					}
 		
 		self.optimizers = {
-					'bob': [tf.train.AdamOptimizer(self.learning_rate).minimize(
-						self.loss_functions['bob'][1], var_list=self.training_variables['bob'])],
+					'bob_decrypter': [tf.train.AdamOptimizer(self.learning_rate).minimize(
+						self.loss_functions['bob_decrypter'][1], var_list=self.training_variables['bob_decrypter'])],
 					'eve': [tf.train.AdamOptimizer(self.learning_rate).minimize(
 						self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
 					}
 		
 		self.errors = {
-				'bob': [],
+				'bob_decrypter': [],
 				'eve': []
 				}
 	def train(self):
 		tf.global_variables_initializer().run()
 		for epoch in range(1, self.epochs+1):
 			print ('Training Alice and Bob, Epoch:', epoch)
-			msg_val, key_val = self.gen_data(tensor_rank_multiplier=self.batch_size)
-			self.iterate('bob', msg_val, key_val)
+			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.batch_size)
+			self.iterate('bob_decrypter', msg_val, key_seed_val)
 			print ('Training Eve, Epoch:', epoch)
-			msg_val, key_val = self.gen_data(tensor_rank_multiplier=self.batch_size*2)
-			self.iterate('eve', msg_val, key_val)
+			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.batch_size*2)
+			self.iterate('eve', msg_val, key_seed_val)
 		self.display_results()
 
-	def iterate(self, network, msg_val, key_val):
+	def iterate(self, network, msg_val, key_seed_val):
 		for i in range(self.iterations):
 			exercise = self.sess.run(
 						[self.optimizers[network], self.loss_functions[network][0]],
-						feed_dict={self.placeholders['msg']: msg_val, self.placeholders['key']: key_val})
+						feed_dict={self.placeholders['msg']: msg_val, self.placeholders['key_seed']: key_seed_val})
 			self.errors[network].append(exercise[1])
 
 	def display_results(self):
 		seaborn.set_style("whitegrid")
-		pyplot.plot([epoch for epoch in range(1, (self.epochs*self.iterations)+1)], self.errors['bob'])
+		pyplot.plot([epoch for epoch in range(1, (self.epochs*self.iterations)+1)], self.errors['bob_decrypter'])
 		pyplot.plot([epoch for epoch in range(1, (self.epochs*self.iterations)+1)], self.errors['eve'])
-		pyplot.legend(['bob', 'eve'])
+		pyplot.legend(['bob_decrypter', 'eve'])
 		pyplot.xlabel(str(self.epochs*self.iterations)+' iterations in '+str(self.epochs)+' epochs')
 		pyplot.ylabel('decryption errors')
 		pyplot.show()
