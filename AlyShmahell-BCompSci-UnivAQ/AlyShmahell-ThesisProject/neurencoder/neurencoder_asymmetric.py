@@ -6,9 +6,9 @@ import seaborn
 from hyper_parameters_asymmetric import *
 
 class NeurEncoder(object):
-	def __init__(self, sess):
+	def __init__(self, tfsession):
 
-		self.sess = sess
+		self.tfsession = tfsession
 		self.msg_len = MSG_LEN
 		self.key_seed_len = kEY_SEED_LEN
 		self.batch_size = BATCH_SIZE
@@ -24,6 +24,7 @@ class NeurEncoder(object):
 		self.model_NoFCL = {'alice': Model_NoFCL[0], 'bob_pub_gen': Model_NoFCL[1], 'bob_priv_gen': Model_NoFCL[1], 'bob_decrypter': Model_NoFCL[1], 'eve': 2*(Model_NoFCL[0]+Model_NoFCL[1]+Model_NoFCL[2]+Model_NoFCL[3])}
 		self.build_model()
 		self.train()
+		self.display_results()
 		
 	def build_1D_convolution(self, layer, filter_shape, stride, name):
 		with tf.variable_scope(name):
@@ -78,10 +79,10 @@ class NeurEncoder(object):
 					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
 					}
 		
-		training_variables_raw = tf.trainable_variables()
+		self.training_variables_raw = tf.trainable_variables()
 		self.training_variables = {
-					'bob_decrypter' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
-					'eve': [var for var in training_variables_raw if 'eve_' in var.name]
+					'bob_decrypter' : [var for var in self.training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
+					'eve': [var for var in self.training_variables_raw if 'eve_' in var.name]
 					}
 		
 		self.optimizers = {
@@ -97,6 +98,7 @@ class NeurEncoder(object):
 				}
 	def train(self):
 		tf.global_variables_initializer().run()
+		model_saver = tf.train.Saver()
 		for epoch in range(1, self.epochs+1):
 			print ('Training Alice and Bob, Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.batch_size)
@@ -104,11 +106,11 @@ class NeurEncoder(object):
 			print ('Training Eve, Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.batch_size*2)
 			self.iterate('eve', msg_val, key_seed_val)
-		self.display_results()
+		model_saver.save(self.tfsession, './neurencoder-asymmetric-model');
 
 	def iterate(self, network, msg_val, key_seed_val):
 		for i in range(self.iterations):
-			exercise = self.sess.run(
+			exercise = self.tfsession.run(
 						[self.optimizers[network], self.loss_functions[network][0]],
 						feed_dict={self.placeholders['msg']: msg_val, self.placeholders['key_seed']: key_seed_val})
 			self.errors[network].append(exercise[1])
@@ -121,7 +123,3 @@ class NeurEncoder(object):
 		pyplot.xlabel(str(self.epochs*self.iterations)+' iterations in '+str(self.epochs)+' epochs')
 		pyplot.ylabel('decryption errors')
 		pyplot.show()
-
-if __name__ == '__main__':
-	with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
-		neurencoder = NeurEncoder(sess)
