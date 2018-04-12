@@ -1,0 +1,15 @@
+{
+	"msg_len" : 16,
+	"key_seed_len" : 16,
+	"batch_size" : 512,
+	"epochs" : 10,
+	"learning_rate" : 0.0008,
+	"iterations" : 2000,
+	"filters" : [
+		[8, 1, 2],
+		[4, 2, 4],
+		[2, 4, 4],
+		[1, 4, 1]
+	],
+	"No_of_FC_Layers" : [1,1,1,1]
+}
