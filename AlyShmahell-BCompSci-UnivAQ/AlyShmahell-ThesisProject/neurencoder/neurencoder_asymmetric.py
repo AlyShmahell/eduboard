@@ -36,7 +36,7 @@ class asymmetric_hyper_parameters(general_hyper_parameters, object):
 							 		
 class symmetric_hyper_parameters(general_hyper_parameters, object):
 	def __init__(self):
-		super(asymmetric_hyper_parameters ,self).__init__()
+		super(symmetric_hyper_parameters ,self).__init__()
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
 
@@ -147,8 +147,8 @@ class NeurEncoder(asymmetric_hyper_parameters, object):
 
 	def display_results(self):
 		seaborn.set_style("whitegrid")
-		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], 					self.errors['bob'])
-		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], 					self.errors['eve'])
+		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], self.errors['bob'])
+		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], self.errors['eve'])
 		pyplot.legend(['bob', 'eve'])
 		pyplot.xlabel(str(self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+' iterations in '
 				+str(self.hyper_parameters["epochs"])+' epochs')
