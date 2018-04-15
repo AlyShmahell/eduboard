@@ -4,33 +4,50 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 import seaborn
 import json
+import sys
 
-class NeurEncoder(object):
-	def __init__(self, tfsession):
-
-		self.tfsession = tfsession
+class general_hyper_parameters(object):
+	def __init__(self):
 		self.hyper_parameters = json.load(open('hyper_parameters_asymmetric.json'))
-		self.hyper_parameters['filters'] = [
-				[self.hyper_parameters['filters'][0][0], 1, self.hyper_parameters['filters'][0][2]],
-				[self.hyper_parameters['filters'][1][0], 
-							self.hyper_parameters['filters'][0][2], self.hyper_parameters['filters'][1][2]],
-				[self.hyper_parameters['filters'][2][0], 
-							self.hyper_parameters['filters'][1][2], self.hyper_parameters['filters'][2][2]],
-				[self.hyper_parameters['filters'][3][0], self.hyper_parameters['filters'][2][2], 1]
-			]
-		self.hyper_parameters['No_of_FC_Layers'] = {'alice': self.hyper_parameters['No_of_FC_Layers'][0],
-							'bob_pub_gen': self.hyper_parameters['No_of_FC_Layers'][1],
-							'bob_priv_gen': self.hyper_parameters['No_of_FC_Layers'][1],
-							'bob_decrypter': self.hyper_parameters['No_of_FC_Layers'][1],
-							 'eve': 2*(
-							 self.hyper_parameters['No_of_FC_Layers'][0]+
-							 self.hyper_parameters['No_of_FC_Layers'][1]+
-							 self.hyper_parameters['No_of_FC_Layers'][2]+
-							 self.hyper_parameters['No_of_FC_Layers'][3])}
+		'''
+		' checking if the filter matrix shape and values are correct
+		'''
+		try:
+			if np.shape(self.hyper_parameters['filters'])!=(4,3):
+				raise ValueError('there is something wrong with filters\' shape inside hyper_parameters.json')
+			if np.array_equal(self.hyper_parameters['filters'],
+						[
+							[self.hyper_parameters['filters'][0][0], 1, self.hyper_parameters['filters'][0][2]],
+							[self.hyper_parameters['filters'][1][0], self.hyper_parameters['filters'][0][2], self.hyper_parameters['filters'][1][2]],
+							[self.hyper_parameters['filters'][2][0], self.hyper_parameters['filters'][1][2], self.hyper_parameters['filters'][2][2]],
+							[self.hyper_parameters['filters'][3][0], self.hyper_parameters['filters'][2][2], 1]
+						]) == False:
+				raise ValueError('there is something wrong with filter values inside hyper_parameters.json')
+		except ValueError as e:
+			sys.exit(e)
+			
+class asymmetric_hyper_parameters(general_hyper_parameters, object):
+	def __init__(self):
+		super(asymmetric_hyper_parameters ,self).__init__()
+		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
+							 		self.hyper_parameters['No_of_FC_Layers']['bob']+
+							 		self.hyper_parameters['No_of_FC_Layers']['pub_key_gen']+
+							 		self.hyper_parameters['No_of_FC_Layers']['priv_key_gen'])
+							 		
+class symmetric_hyper_parameters(general_hyper_parameters, object):
+	def __init__(self):
+		super(asymmetric_hyper_parameters ,self).__init__()
+		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
+							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
+
+class NeurEncoder(asymmetric_hyper_parameters, object):
+	def __init__(self, tfsession):
+		super(NeurEncoder ,self).__init__()
+		self.tfsession = tfsession
 		self.build_model()
 		self.train()
 		self.display_results()
-		
+
 	def build_1D_convolution(self, layer, filter_shape, stride, name):
 		with tf.variable_scope(name):
 			weight_filter = tf.get_variable('w', shape=filter_shape, initializer=tf.contrib.layers.xavier_initializer())
@@ -70,43 +87,43 @@ class NeurEncoder(object):
 					'key_seed': tf.placeholder("float", [None, self.hyper_parameters["key_seed_len"]])
 					}
 
-		self.bob_pub_key_generator = self.build_net('bob_pub_gen', self.placeholders['key_seed'],
-						self.hyper_parameters["No_of_FC_Layers"]['bob_pub_gen'])
-		self.bob_priv_key_generator = self.build_net('bob_priv_gen', self.bob_pub_key_generator,
-						self.hyper_parameters["No_of_FC_Layers"]['bob_priv_gen'])
+		self.pub_key_generator = self.build_net('pub_key_gen', self.placeholders['key_seed'],
+						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'])
+		self.priv_key_generator = self.build_net('priv_key_gen', self.pub_key_generator,
+						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'])
 		self.alice = self.build_net('alice', 
-					tf.concat([self.placeholders['msg'], self.bob_pub_key_generator],1),
+					tf.concat([self.placeholders['msg'], self.pub_key_generator],1),
 							self.hyper_parameters["No_of_FC_Layers"]['alice'])
-		self.bob_decrypter = self.build_net('bob_decrypter', tf.concat([self.alice, self.bob_priv_key_generator],1),
-							self.hyper_parameters["No_of_FC_Layers"]['bob_decrypter'])
+		self.bob = self.build_net('bob', tf.concat([self.alice, self.priv_key_generator],1),
+							self.hyper_parameters["No_of_FC_Layers"]['bob'])
 		
-		self.eve = self.build_net('eve', tf.concat([self.alice,self.bob_pub_key_generator], 1), 
+		self.eve = self.build_net('eve', tf.concat([self.alice,self.pub_key_generator], 1), 
 							self.hyper_parameters["No_of_FC_Layers"]['eve'])
 		
 		self.loss_functions = {
-					'bob_decrypter': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob_decrypter)),
-						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob_decrypter))
+					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
+						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
 					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
 					}
 		
 		self.training_variables_raw = tf.trainable_variables()
 		self.training_variables = {
-					'bob_decrypter' : [var for var in self.training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
+					'bob' : [var for var in self.training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
 					'eve': [var for var in self.training_variables_raw if 'eve_' in var.name]
 					}
 		
 		self.optimizers = {
-					'bob_decrypter': [tf.train.AdamOptimizer(
+					'bob': [tf.train.AdamOptimizer(
 						self.hyper_parameters["learning_rate"]).minimize(
-							self.loss_functions['bob_decrypter'][1], 
-								var_list=self.training_variables['bob_decrypter'])],
+							self.loss_functions['bob'][1], 
+								var_list=self.training_variables['bob'])],
 					'eve': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
 							self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
 					}
 		
 		self.errors = {
-				'bob_decrypter': [],
+				'bob': [],
 				'eve': []
 				}
 	def train(self):
@@ -115,7 +132,7 @@ class NeurEncoder(object):
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			print ('Training Alice and Bob, Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			self.iterate('bob_decrypter', msg_val, key_seed_val)
+			self.iterate('bob', msg_val, key_seed_val)
 			print ('Training Eve, Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"]*2)
 			self.iterate('eve', msg_val, key_seed_val)
@@ -130,9 +147,9 @@ class NeurEncoder(object):
 
 	def display_results(self):
 		seaborn.set_style("whitegrid")
-		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], 					self.errors['bob_decrypter'])
+		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], 					self.errors['bob'])
 		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], 					self.errors['eve'])
-		pyplot.legend(['bob_decrypter', 'eve'])
+		pyplot.legend(['bob', 'eve'])
 		pyplot.xlabel(str(self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+' iterations in '
 				+str(self.hyper_parameters["epochs"])+' epochs')
 		pyplot.ylabel('decryption errors')

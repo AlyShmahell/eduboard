@@ -6,10 +6,13 @@
 	"learning_rate" : 0.0008,
 	"iterations" : 2000,
 	"filters" : [
-		[8, 1, 2],
-		[4, 2, 4],
-		[2, 4, 4],
-		[1, 4, 1]
-	],
-	"No_of_FC_Layers" : [1,1,1,1]
+			[8, 1, 2],
+			[4, 2, 4],
+			[2, 4, 4],
+			[1, 4, 1]
+		],
+	"No_of_FC_Layers" : {"alice": 1,
+				"bob": 1, 
+	 			"pub_key_gen": 1,
+				"priv_key_gen": 1}
 }
