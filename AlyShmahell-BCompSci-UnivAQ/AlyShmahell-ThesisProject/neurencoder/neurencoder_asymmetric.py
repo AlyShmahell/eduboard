@@ -40,14 +40,9 @@ class symmetric_hyper_parameters(general_hyper_parameters, object):
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
 
-class NeurEncoder(asymmetric_hyper_parameters, object):
-	def __init__(self, tfsession):
-		super(NeurEncoder ,self).__init__()
-		self.tfsession = tfsession
-		self.build_model()
-		self.train()
-		self.display_results()
-
+class model_builder(general_hyper_parameters, object):
+	def __init(self):
+		super(model_builder, self).__init__();
 	def build_1D_convolution(self, layer, filter_shape, stride, name):
 		with tf.variable_scope(name):
 			weight_filter = tf.get_variable('w', shape=filter_shape, initializer=tf.contrib.layers.xavier_initializer())
@@ -80,6 +75,11 @@ class NeurEncoder(asymmetric_hyper_parameters, object):
 		hidden_layer = tf.expand_dims(fc_layer, 2)
 		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, net_name))
 		return net
+		
+
+class asymmetric_model(asymmetric_hyper_parameters,model_builder, object):
+	def __init__(self):
+		super(asymmetric_model, self).__init__()
 
 	def build_model(self):
 		self.placeholders = {
@@ -126,6 +126,50 @@ class NeurEncoder(asymmetric_hyper_parameters, object):
 				'bob': [],
 				'eve': []
 				}
+				
+class symmetric_model(symmetric_hyper_parameters, model_builder, object):
+	def __init__(self):
+		super(symmetric_model, self).__init__()
+		
+	def build_model(self):
+		self.placeholders = {
+					'msg': tf.placeholder("float", [None, self.hyper_parameters["msg_len"]]),
+					'key_seed': tf.placeholder("float", [None, self.hyper_parameters["key_seed_len"]])
+					}
+
+		self.alice = self.build_net('alice', 
+					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['alice'])
+		self.bob = self.build_net('bob', tf.concat([self.alice, self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['bob'])
+		self.eve = self.build_net('eve', self.alice, self.hyper_parameters["No_of_FC_Layers"]['eve'])
+		
+		self.loss_functions = {
+					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
+						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
+						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
+					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
+					}
+		
+		training_variables_raw = tf.trainable_variables()
+		self.training_variables = {
+					'bob' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
+					'eve': [var for var in training_variables_raw if 'eve_' in var.name]
+					}
+		
+		self.optimizers = {
+					'bob': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
+						self.loss_functions['bob'][1], var_list=self.training_variables['bob'])],
+					'eve': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
+						self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
+					}
+		
+		self.errors = {
+				'bob': [],
+				'eve': []
+				}
+class model_trainer(model_builder, object):
+	def __init__(self, tfsession):
+		super(model_trainer, self).__init__()
+		self.tfsession = tfsession
 	def train(self):
 		tf.global_variables_initializer().run()
 		model_saver = tf.train.Saver()
@@ -154,3 +198,29 @@ class NeurEncoder(asymmetric_hyper_parameters, object):
 				+str(self.hyper_parameters["epochs"])+' epochs')
 		pyplot.ylabel('decryption errors')
 		pyplot.show()
+		
+class symmetric_neurencoder(symmetric_model, model_trainer, object):
+	def __init__(self, tfsession):
+		super(symmetric_neurencoder, self).__init__()
+		self.build_model()
+		self.train()
+		self.display_results()
+		
+class asymmetric_neurencoder(asymmetric_model, model_trainer, object):
+	def __init__(self, tfsession):
+		super(asymmetric_neurencoder, self).__init__()
+		self.build_model()
+		self.train()
+		self.display_results()
+		
+class neurencoder(object):
+	def __init__(self, tfsession, scheme):
+		self.tfsession = tfsession
+		self.scheme = scheme
+		self.return_cryptosys()	
+	def return_cryptosys(self):
+		if self.scheme == 'symmetric':
+			self.cryptosys = symmetric_neurencoder(self.tfsession)
+		else:
+			self.cryptosys = asymmetric_neurencoder(self.tfsession)
+		return self.cryptosys
