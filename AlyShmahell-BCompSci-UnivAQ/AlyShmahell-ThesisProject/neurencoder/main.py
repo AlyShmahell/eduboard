@@ -12,17 +12,21 @@ class scheme_option(object):
 		parser.add_argument('-symmetric', action='store_const', dest='symmetric',
 				    const='symmetric',
 				    default = '',
-				    help='chose the symmetric model')
+				    help='choses the symmetric model')
 		parser.add_argument('-asymmetric', action='store_const', dest='asymmetric',
 				    const='asymmetric',
 				    default = '',
-				    help='chose the asymmetric model')
+				    help='choses the asymmetric model')
 		return parser.parse_args()
 
-from neurencoder_asymmetric import *
-
-    
+from neurencoder import *
 if __name__ == '__main__':
 	# config=tf.ConfigProto(log_device_placement=True)
+	start_time = datetime.datetime.now()
 	with tf.Session() as tfsession:
 		neurencoder = neurencoder(tfsession, scheme_option().scheme)
+	end_time = datetime.datetime.now()
+	uptime = end_time - start_time
+	print('Uptime: '+str(uptime))
+	with open('./saved_model_data/neurencoder-'+scheme_option().scheme+'-Uptime-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"), "w") as uptime_outfile:
+		uptime_outfile.write(str(uptime))
