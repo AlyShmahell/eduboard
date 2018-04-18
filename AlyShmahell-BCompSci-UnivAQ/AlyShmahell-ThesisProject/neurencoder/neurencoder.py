@@ -191,32 +191,17 @@ class model_trainer(model_builder, object):
 		pyplot.savefig('./saved_model_data/neurencoder-'+self.scheme+'-plot_figure-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")+'.svg')
 		pyplot.show()
 		
-class symmetric_neurencoder(symmetric_model, model_trainer, object):
+class neurencoder(symmetric_model, asymmetric_model, model_trainer, object):
 	def __init__(self, tfsession, scheme):
 		self.tfsession = tfsession
 		self.scheme = scheme
-		super(symmetric_neurencoder, self).__init__()
-		self.build_model()
-		self.train()
-		self.display_results()
-		
-class asymmetric_neurencoder(asymmetric_model, model_trainer, object):
-	def __init__(self, tfsession, scheme):
-		self.tfsession = tfsession
-		self.scheme = scheme
-		super(asymmetric_neurencoder, self).__init__()
-		self.build_model()
-		self.train()
-		self.display_results()
-		
-class neurencoder(object):
-	def __init__(self, tfsession, scheme):
-		self.tfsession = tfsession
-		self.scheme = scheme
-		self.return_cryptosys()	
-	def return_cryptosys(self):
+		model_trainer.__init__(self)
 		if self.scheme == 'symmetric':
-			self.cryptosys = symmetric_neurencoder(self.tfsession, self.scheme)
+			symmetric_model.__init__(self)
 		else:
-			self.cryptosys = asymmetric_neurencoder(self.tfsession, self.scheme)
-		return self.cryptosys
+			asymmetric_model.__init__(self)
+		
+		self.build_model()
+		self.train()
+		self.display_results()
+
