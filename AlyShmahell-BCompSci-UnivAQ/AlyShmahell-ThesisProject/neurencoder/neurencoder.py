@@ -6,8 +6,10 @@ import seaborn
 import json
 import sys
 import datetime
+import progressbar
 
 class general_hyper_parameters(object):
+
 	def __init__(self):
 		self.hyper_parameters = json.load(open('hyper_parameters.json'))
 		'''
@@ -27,23 +29,30 @@ class general_hyper_parameters(object):
 		except ValueError as e:
 			sys.exit(e)
 			
+			
 class asymmetric_hyper_parameters(general_hyper_parameters, object):
+
 	def __init__(self):
 		super(asymmetric_hyper_parameters ,self).__init__()
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob']+
 							 		self.hyper_parameters['No_of_FC_Layers']['pub_key_gen']+
 							 		self.hyper_parameters['No_of_FC_Layers']['priv_key_gen'])
+					
 							 		
 class symmetric_hyper_parameters(general_hyper_parameters, object):
+
 	def __init__(self):
 		super(symmetric_hyper_parameters ,self).__init__()
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
 
+
 class model_builder(general_hyper_parameters, object):
+
 	def __init(self):
-		super(model_builder, self).__init__();
+		super(model_builder, self).__init__()
+		
 	def build_1D_convolution(self, layer, filter_shape, stride, name):
 		with tf.variable_scope(name):
 			weight_filter = tf.get_variable('w', shape=filter_shape, initializer=tf.contrib.layers.xavier_initializer())
@@ -77,7 +86,9 @@ class model_builder(general_hyper_parameters, object):
 		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, net_name))
 		return net
 
+
 class model_data(general_hyper_parameters, object):
+
 	def __init__(self):
 		super(model_data, self).__init__()
 		self.placeholders = {
@@ -87,11 +98,20 @@ class model_data(general_hyper_parameters, object):
 		self.errors = {
 				'bob': [],
 				'eve': []
-				}	
+				}
+		
+	def reset_errors(self):
+		self.errors = {
+				'bob': [],
+				'eve': []
+				}
+
 
 class asymmetric_model(asymmetric_hyper_parameters, model_builder, model_data, object):
+
 	def __init__(self):
 		super(asymmetric_model, self).__init__()
+		
 	def build_model(self):
 		self.pub_key_generator = self.build_net('pub_key_gen', self.placeholders['key_seed'],
 						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], True)
@@ -112,13 +132,11 @@ class asymmetric_model(asymmetric_hyper_parameters, model_builder, model_data, o
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
 					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
 					}
-		
 		self.training_variables_raw = tf.trainable_variables()
 		self.training_variables = {
 					'bob' : [var for var in self.training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
 					'eve': [var for var in self.training_variables_raw if 'eve_' in var.name]
 					}
-		
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(
 						self.hyper_parameters["learning_rate"]).minimize(
@@ -128,28 +146,28 @@ class asymmetric_model(asymmetric_hyper_parameters, model_builder, model_data, o
 							self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
 					}	
 				
+				
 class symmetric_model(symmetric_hyper_parameters, model_builder, model_data, object):
+
 	def __init__(self):
 		super(symmetric_model, self).__init__()
+		
 	def build_model(self):
 		self.alice = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['alice'])
 		self.bob = self.build_net('bob', tf.concat([self.alice, self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['bob'])
 		self.eve = self.build_net('eve', self.alice, self.hyper_parameters["No_of_FC_Layers"]['eve'], True)
-		
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
 					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
 					}
-		
 		training_variables_raw = tf.trainable_variables()
 		self.training_variables = {
 					'bob' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
 					'eve': [var for var in training_variables_raw if 'eve_' in var.name]
 					}
-		
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
 						self.loss_functions['bob'][1], var_list=self.training_variables['bob'])],
@@ -159,49 +177,82 @@ class symmetric_model(symmetric_hyper_parameters, model_builder, model_data, obj
 		
 
 class model_trainer(model_builder, object):
+
 	def __init__(self):
 		super(model_trainer, self).__init__()
+		
 	def train(self):
 		tf.global_variables_initializer().run()
-		model_saver = tf.train.Saver()
+		self.model_saver = tf.train.Saver()
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
-			asthetics_param_friends = ('',' and their friends')[self.scheme=='asymmetric']
-			print ('Training Alice, Bob'+asthetics_param_friends+' - Epoch:', epoch)
+			print ('Training Alice, Bob - Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
 			self.iterate('bob', msg_val, key_seed_val)
-			print ('Training Eve, Epoch:', epoch)
+			print ('Training Eve - Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"]*2)
 			self.iterate('eve', msg_val, key_seed_val)
-		model_saver.save(self.tfsession, './saved_model_data/neurencoder-'+self.scheme+'-model-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"));
+		
 	def iterate(self, network, msg_val, key_seed_val):
+		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			exercise = self.tfsession.run(
 						[self.optimizers[network], self.loss_functions[network][0]],
 						feed_dict={self.placeholders['msg']: msg_val, self.placeholders['key_seed']: key_seed_val})
 			self.errors[network].append(exercise[1])
+			iteration_progressbar.update(i+1)
+		iteration_progressbar.finish()
 
-	def display_results(self):
+
+class result_processor:
+
+	start_time = datetime.datetime.now()
+	def process_uptime(scheme):
+		uptime = datetime.datetime.now() - result_processor.start_time
+		print('Uptime: '+str(uptime))
+		with open('./saved_model_data/neurencoder-'+scheme+'-Uptime-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"), "w") as uptime_outfile:
+			uptime_outfile.write(str(uptime))
+			
+	def process_results(scheme, errors, x_scale, x_scale_caption, y_scale_caption, which_result):
 		seaborn.set_style("whitegrid")
-		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], self.errors['bob'])
-		pyplot.plot([epoch for epoch in range(1, (self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+1)], self.errors['eve'])
-		pyplot.legend(['bob', 'eve'])
-		pyplot.xlabel(str(self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"])+' iterations in '
-				+str(self.hyper_parameters["epochs"])+' epochs')
-		pyplot.ylabel('decryption errors')
-		pyplot.savefig('./saved_model_data/neurencoder-'+self.scheme+'-plot_figure-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")+'.svg')
+		legend = []
+		for net_name in errors:
+			pyplot.plot([epoch for epoch in range(1, (x_scale)+1)], errors[net_name])
+			legend.append(net_name)
+		pyplot.legend(legend)
+		pyplot.xlabel(str(x_scale)+x_scale_caption)
+		pyplot.ylabel(y_scale_caption)
+		pyplot.savefig('./saved_model_data/neurencoder-'+scheme+'-'+which_result+'-plot_figure-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")+'.svg')
 		pyplot.show()
+		
+	def save_model(scheme, tfsession, model_saver): 
+		model_saver.save(tfsession, './saved_model_data/neurencoder-'+scheme+'-model-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"));
+	
+	class progress_bar(object):
+	
+		def __init__(self, steps):
+			self.current_progress_bar = progressbar.ProgressBar(maxval=steps, widgets=[progressbar.Bar('+', '[', ']'), ' ', progressbar.Percentage()])
+			self.current_progress_bar.start()
+			
+		def update(self, step):
+			self.current_progress_bar.update(step)
+			
+		def finish(self):
+			self.current_progress_bar.finish()
+		
 		
 class neurencoder(symmetric_model, asymmetric_model, model_trainer, object):
 	def __init__(self, tfsession, scheme):
 		self.tfsession = tfsession
 		self.scheme = scheme
+		result_processor.start_time
 		model_trainer.__init__(self)
 		if self.scheme == 'symmetric':
 			symmetric_model.__init__(self)
 		else:
 			asymmetric_model.__init__(self)
-		
 		self.build_model()
 		self.train()
-		self.display_results()
+		result_processor.process_uptime(self.scheme)
+		result_processor.save_model(self.scheme, self.tfsession, self.model_saver)
+		result_processor.process_results(self.scheme, self.errors, x_scale=self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"], x_scale_caption=' iterations', y_scale_caption='decryption errors', which_result='TRAINING')
 
