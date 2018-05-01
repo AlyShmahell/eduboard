@@ -38,6 +38,7 @@ class asymmetric_hyper_parameters(general_hyper_parameters, object):
 							 		self.hyper_parameters['No_of_FC_Layers']['bob']+
 							 		self.hyper_parameters['No_of_FC_Layers']['pub_key_gen']+
 							 		self.hyper_parameters['No_of_FC_Layers']['priv_key_gen'])
+		self.hyper_parameters['No_of_FC_Layers']['alan'] = self.hyper_parameters['No_of_FC_Layers']['eve']
 					
 							 		
 class symmetric_hyper_parameters(general_hyper_parameters, object):
@@ -46,6 +47,7 @@ class symmetric_hyper_parameters(general_hyper_parameters, object):
 		super(symmetric_hyper_parameters ,self).__init__()
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
+		self.hyper_parameters['No_of_FC_Layers']['alan'] = self.hyper_parameters['No_of_FC_Layers']['eve']
 
 
 class model_builder(general_hyper_parameters, object):
@@ -97,13 +99,15 @@ class model_data(general_hyper_parameters, object):
 					}
 		self.errors = {
 				'bob': [],
-				'eve': []
+				'eve': [],
+				'alan': []
 				}
 		
 	def reset_errors(self):
 		self.errors = {
 				'bob': [],
-				'eve': []
+				'eve': [],
+				'alan': []
 				}
 
 
@@ -125,17 +129,20 @@ class asymmetric_model(asymmetric_hyper_parameters, model_builder, model_data, o
 		
 		self.eve = self.build_net('eve', tf.concat([self.alice,self.pub_key_generator], 1), 
 							self.hyper_parameters["No_of_FC_Layers"]['eve'])
-		
+		self.alan = self.build_net('alan', tf.concat([self.alice,self.pub_key_generator], 1), 
+							self.hyper_parameters["No_of_FC_Layers"]['eve'])
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
-					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
+					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))],
+					'alan': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.alan))]
 					}
-		self.training_variables_raw = tf.trainable_variables()
+		self.tf_trainable_variables = tf.trainable_variables()
 		self.training_variables = {
-					'bob' : [var for var in self.training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
-					'eve': [var for var in self.training_variables_raw if 'eve_' in var.name]
+					'bob' : [var for var in self.tf_trainable_variables if 'alice_' in var.name or 'bob_' in var.name],
+					'eve': [var for var in self.tf_trainable_variables if 'eve_' in var.name],
+					'alan': [var for var in self.tf_trainable_variables if 'alan_' in var.name]
 					}
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(
@@ -143,7 +150,9 @@ class asymmetric_model(asymmetric_hyper_parameters, model_builder, model_data, o
 							self.loss_functions['bob'][1], 
 								var_list=self.training_variables['bob'])],
 					'eve': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
-							self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
+							self.loss_functions['eve'][0], var_list=self.training_variables['eve'])],
+					'alan': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
+							self.loss_functions['alan'][0], var_list=self.training_variables['alan'])]
 					}	
 				
 				
@@ -157,22 +166,27 @@ class symmetric_model(symmetric_hyper_parameters, model_builder, model_data, obj
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['alice'])
 		self.bob = self.build_net('bob', tf.concat([self.alice, self.placeholders['key_seed']],1), self.hyper_parameters["No_of_FC_Layers"]['bob'])
 		self.eve = self.build_net('eve', self.alice, self.hyper_parameters["No_of_FC_Layers"]['eve'], True)
+		self.alan = self.build_net('alan', self.alice, self.hyper_parameters["No_of_FC_Layers"]['eve'], True)
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob)),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.bob))
 						 + (1. - tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))) ** 2.],
-					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))]
+					'eve': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.eve))],
+					'alan': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.alan))]
 					}
-		training_variables_raw = tf.trainable_variables()
+		tf_trainable_variables = tf.trainable_variables()
 		self.training_variables = {
-					'bob' : [var for var in training_variables_raw if 'alice_' in var.name or 'bob_' in var.name],
-					'eve': [var for var in training_variables_raw if 'eve_' in var.name]
+					'bob' : [var for var in tf_trainable_variables if 'alice_' in var.name or 'bob_' in var.name],
+					'eve': [var for var in tf_trainable_variables if 'eve_' in var.name],
+					'alan': [var for var in tf_trainable_variables if 'alan_' in var.name]
 					}
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
 						self.loss_functions['bob'][1], var_list=self.training_variables['bob'])],
 					'eve': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
-						self.loss_functions['eve'][0], var_list=self.training_variables['eve'])]
+						self.loss_functions['eve'][0], var_list=self.training_variables['eve'])],
+					'alan': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
+						self.loss_functions['alan'][0], var_list=self.training_variables['alan'])]
 					}
 		
 
@@ -185,12 +199,13 @@ class model_trainer(model_builder, object):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
-			print ('Training Alice, Bob - Epoch:', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			print ('Training Alice, Bob - Epoch:', epoch)
 			self.iterate('bob', msg_val, key_seed_val)
 			print ('Training Eve - Epoch:', epoch)
-			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"]*2)
 			self.iterate('eve', msg_val, key_seed_val)
+			print ('Training Alan - Epoch:', epoch)
+			self.iterate('alan', msg_val, key_seed_val)
 		
 	def iterate(self, network, msg_val, key_seed_val):
 		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
