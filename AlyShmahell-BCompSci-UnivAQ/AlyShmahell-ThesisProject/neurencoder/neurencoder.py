@@ -61,8 +61,11 @@ class symmetric_hyper_parameters(object):
 
 class model_builder(object):
 
-	def __init(self):
+	def __init__(self):
 		print('model_builder', 'initiated')
+		
+	random_binary = lambda self, shape, dtype, partition_info=None:\
+				(tf.random_uniform(shape, minval = 0, maxval = 2, dtype=dtype)*2-1)
 
 	def build_1D_convolution(self, layer, build_mode, filter_shape, stride, name):
 		if build_mode == 'TRAINING':
@@ -245,11 +248,13 @@ class symmetric_training_model(object):
 					'eve': [var for var in tf_trainable_variables if 'eve_' in var.name],
 					'alan': [var for var in tf_trainable_variables if 'alan_' in var.name]
 					}
-		
+		'''
+		' debugging
+		'
 		for net in self.training_variables:
 			for var in self.training_variables[net]:
 				print(var)
-		
+		'''
 			
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
