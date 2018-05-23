@@ -1,18 +1,68 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import seaborn
 import json
 import sys
 import datetime
 import progressbar
+import logging.config
+import inspect
 
-class general_hyper_parameters(object):
+
+class progress_bar(object):
+	
+	def __init__(self, steps):
+		self.current_progress_bar = progressbar.ProgressBar(maxval=steps,
+										widgets=[progressbar.Bar('+', '[', ']'),
+										' ', progressbar.Percentage()])								
+		self.current_progress_bar.start()
+			
+	def update(self, step):
+		self.current_progress_bar.update(step)
+			
+	def finish(self):
+		self.current_progress_bar.finish()
+
+class base(object):
+	
+	def init_logger(self):
+		logging.config.dictConfig(json.load(open('log/logging.json')))
+		self.logger = logging.getLogger()
+	
+	def __init__(self):
+		self.init_logger()
+		self.logger.info('%s class is initiated', 'base')
+		self.hyper_parameters = json.load(open('hyper_parameters.json'))
+		self.tfsession = None
+		self.scheme = None
+		self.plt_xScale = self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"]
+		self.plt_xScale_caption = ' iterations'
+		self.plt_yScale_caption = 'decryption errors'
+		self.start_time = datetime.datetime.now()
+		
+		
+
+class helper_functions(base):
 
 	def __init__(self):
-		print('general_hyper_parameters', 'initiated')
-		self.hyper_parameters = json.load(open('hyper_parameters.json'))
+		super().__init__()
+		self.logger.info('%s class is initiated', 'helper_functions')
+		
+	random_binary = lambda self, shape, dtype, partition_info=None:\
+				(tf.random_uniform(shape, minval = 0, maxval = 2, dtype=dtype)*2-1)
+				
+	def gen_data(self, tensor_rank_multiplier):
+		return (np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["msg_len"]))*2-1),\
+		   	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["key_seed_len"]))*2-1)
+		
+
+class general_hyper_parameters(base):
+
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'general_hyper_parameters')
 		'''
 		' checking if the filter matrix shape and values are correct
 		'''
@@ -36,13 +86,15 @@ class general_hyper_parameters(object):
 						]) == False:
 				raise ValueError('there is something wrong with filter values inside hyper_parameters.json')
 		except ValueError as e:
-			sys.exit(e)
+			self.logger.error(e)
+			sys.exit()
 			
 			
-class asymmetric_hyper_parameters(object):
+class asymmetric_hyper_parameters(base):
 
 	def __init__(self):
-		print('asymmetric_hyper_parameters', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'asymmetric_hyper_parameters')
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob']+
 							 		self.hyper_parameters['No_of_FC_Layers']['pub_key_gen']+
@@ -50,22 +102,21 @@ class asymmetric_hyper_parameters(object):
 		self.hyper_parameters['No_of_FC_Layers']['alan'] = self.hyper_parameters['No_of_FC_Layers']['eve']
 					
 							 		
-class symmetric_hyper_parameters(object):
+class symmetric_hyper_parameters(base):
 
 	def __init__(self):
-		print('symmetric_hyper_parameters', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_hyper_parameters')
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2*(self.hyper_parameters['No_of_FC_Layers']['alice']+
 							 		self.hyper_parameters['No_of_FC_Layers']['bob'])
 		self.hyper_parameters['No_of_FC_Layers']['alan'] = self.hyper_parameters['No_of_FC_Layers']['eve']
 
 
-class model_builder(object):
+class model_builder(base):
 
 	def __init__(self):
-		print('model_builder', 'initiated')
-		
-	random_binary = lambda self, shape, dtype, partition_info=None:\
-				(tf.random_uniform(shape, minval = 0, maxval = 2, dtype=dtype)*2-1)
+		super().__init__()
+		self.logger.info('%s class is initiated', 'model_builder')
 
 	def build_1D_convolution(self, layer, build_mode, filter_shape, stride, name):
 		if build_mode == 'TRAINING':
@@ -92,10 +143,6 @@ class model_builder(object):
 				self.hyper_parameters["filters"][3], stride=1, name=name+'_conv3'))
 		return convolution_3
 	
-	def gen_data(self, tensor_rank_multiplier):
-		return (np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["msg_len"]))*2-1),\
-		   	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["key_seed_len"]))*2-1)
-
 	def build_net(self, net_name, net_input, no_of_FC_layers, build_mode, halved_first_layer_flag=False):
 		if build_mode == 'TRAINING':
 			self.weights = [tf.get_variable(net_name+"_w"+str(NoFCL), 
@@ -117,10 +164,11 @@ class model_builder(object):
 		return net
 
 
-class model_data(object):
+class model_data(base):
 
 	def __init__(self):
-		print('model_data', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'model_data')
 		self.placeholders = {
 					'msg': tf.placeholder("float", [None, self.hyper_parameters["msg_len"]]),
 					'key_seed': tf.placeholder("float", [None, self.hyper_parameters["key_seed_len"]]),
@@ -135,7 +183,7 @@ class model_data(object):
 				}
 		
 	def reset_errors(self):
-		print('errors have been reset')
+		self.logger.info('errors have been reset')
 		self.errors = {
 				'bob': [],
 				'eve': [],
@@ -143,10 +191,11 @@ class model_data(object):
 				}
 
 
-class asymmetric_training_model(object):
+class asymmetric_training_model(base):
 
 	def __init__(self):
-		print('asymmetric_model', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'asymmetric_training_model')
 		
 	def build_training_model(self):
 		self.networks = {}
@@ -194,10 +243,13 @@ class asymmetric_training_model(object):
 					}
 					
 					
-class asymmetric_testing_model(object):
+class asymmetric_testing_model(base):
+		
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'asymmetric_testing_model')
 					
 	def build_testing_model(self):
-		print('build_testing_model', 'asymmetric', 'called')
 		self.networks['pub_key_generator'] = self.build_net('pub_key_gen', self.placeholders['key_seed'],
 						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'TESTING', True)
 		self.networks['priv_key_generator'] = self.build_net('priv_key_gen', self.placeholders['pub_key'],
@@ -217,10 +269,11 @@ class asymmetric_testing_model(object):
 							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', False)
 				
 				
-class symmetric_training_model(object):
+class symmetric_training_model(base):
 
 	def __init__(self):
-		print('symmetric_model', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_training_model')
 		
 	def build_training_model(self):
 		self.networks = {}
@@ -266,10 +319,13 @@ class symmetric_training_model(object):
 					}
 					
 					
-class symmetric_testing_model(object):
+class symmetric_testing_model(base):
+		
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_testing_model')
 
 	def build_testing_model(self):
-		print('build_testing_model', 'symmetric', 'called')
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1),
 					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TESTING', False)
@@ -282,10 +338,11 @@ class symmetric_testing_model(object):
 					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', True)
 
 
-class hybrid_training_model(object):
+class hybrid_training_model(base):
 
 	def __init__(self):
-		print('asymmetric_model', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'hybrid_training_model')
 		
 	def build_training_model(self):
 		self.networks = {}
@@ -331,10 +388,13 @@ class hybrid_training_model(object):
 					}
 
 					
-class hybrid_testing_model(object):
+class hybrid_testing_model(base):
+		
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'hybrid_testing_model')
 
 	def build_testing_model(self):
-		print('build_testing_model', 'hybrid', 'called')
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1),
 					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TESTING', False)
@@ -347,31 +407,31 @@ class hybrid_testing_model(object):
 					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', True)
 
 
-class asymmetric_model_tester(object):
+class asymmetric_model_tester(base):
 
 	def __init__(self):
-		print('asymmetric_model_tester', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'asymmetric_model_tester')
 		
-	def test(self):
+	def run_testing_model(self):
 		self.reset_errors()
-		print('asymmetric_model_tester', 'running')
 		self.model_saver = tf.train.Saver()
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			print('Testing Key-Pair Generation - Epoch: ', epoch)
+			self.logger.info('Testing Key-Pair Generation - Epoch: %s', epoch)
 			self.iterate_pub_key_generation(key_seed_val)
 			self.iterate_priv_key_generation()
-			print('Testing Alice - Epoch: ', epoch)
+			self.logger.info('Testing Alice - Epoch: %s', epoch)
 			self.iterate_alice(msg_val)
-			print('Testing Bob - Epoch: ', epoch)
+			self.logger.info('Testing Bob - Epoch: %s', epoch)
 			self.iterate_decryptors('bob', msg_val, key_seed_val)
-			print('Testing eve - Epoch: ', epoch)
+			self.logger.info('Testing eve - Epoch: %s', epoch)
 			self.iterate_decryptors('eve', msg_val, key_seed_val)
-			print('Testing Alan - Epoch: ', epoch)
+			self.logger.info('Testing Alan - Epoch: %s', epoch)
 			self.iterate_decryptors('alan', msg_val, key_seed_val)
 			
 	def iterate_pub_key_generation(self, key_seed_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			self.pub_key_val = self.tfsession.run(self.networks['pub_key_generator'],
 						feed_dict={self.placeholders['key_seed']: key_seed_val})
@@ -379,7 +439,7 @@ class asymmetric_model_tester(object):
 		iteration_progressbar.finish()
 		
 	def iterate_priv_key_generation(self):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			self.priv_key_val = self.tfsession.run(self.networks['priv_key_generator'],
 						feed_dict={self.placeholders['pub_key']: self.pub_key_val})
@@ -387,7 +447,7 @@ class asymmetric_model_tester(object):
 		iteration_progressbar.finish()
 		
 	def iterate_alice(self, msg_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			self.encrypted_msg_val = self.tfsession.run(self.networks['alice'],
 						feed_dict={self.placeholders['msg']: msg_val,
@@ -396,7 +456,7 @@ class asymmetric_model_tester(object):
 		iteration_progressbar.finish()
 		
 	def iterate_decryptors(self, network, msg_val, key_seed_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			test_results = self.tfsession.run(
 						self.loss_functions[network][0],
@@ -409,28 +469,28 @@ class asymmetric_model_tester(object):
 			iteration_progressbar.update(i+1)
 		iteration_progressbar.finish()
 
-class symmetric_model_tester(object):
+class symmetric_model_tester(base):
 
 	def __init__(self):
-		print('symmetric_model_tester', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_model_tester')
 		
-	def test(self):
+	def run_testing_model(self):
 		self.reset_errors()
-		print('symmetric_model_tester', 'running')
 		self.model_saver = tf.train.Saver()
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			print ('Testing Alice - Epoch:', epoch)
+			self.logger.info('Testing Alice - Epoch: %s', epoch)
 			self.iterate_alice(msg_val, key_seed_val)
-			print ('Testing Bob - Epoch:', epoch)
+			self.logger.info('Testing Bob - Epoch: %s', epoch)
 			self.iterate_decryptors('bob', msg_val, key_seed_val)
-			print ('Testing Eve - Epoch:', epoch)
+			self.logger.info('Testing Eve - Epoch: %s', epoch)
 			self.iterate_decryptors('eve', msg_val, key_seed_val)
-			print ('Testing Alan - Epoch:', epoch)
+			self.logger.info('Testing Alan - Epoch: %s', epoch)
 			self.iterate_decryptors('alan', msg_val, key_seed_val)
 			
 	def iterate_alice(self, msg_val, key_seed_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			self.encrypted_msg_val = self.tfsession.run(self.networks['alice'],
 						feed_dict={self.placeholders['msg']: msg_val,
@@ -439,7 +499,7 @@ class symmetric_model_tester(object):
 		iteration_progressbar.finish()
 		
 	def iterate_decryptors(self, network, msg_val, key_seed_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			test_results = self.tfsession.run(
 						self.loss_functions[network][0],
@@ -451,26 +511,27 @@ class symmetric_model_tester(object):
 		iteration_progressbar.finish()
 			
 
-class model_trainer(object):
+class model_trainer(base):
 
 	def __init__(self):
-		print('model_trainer', 'initiated')
+		super().__init__()
+		self.logger.info('%s class is initiated', 'model_trainer')
 		
-	def train(self):
+	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			print ('Training Alice, Bob - Epoch:', epoch)
+			self.logger.info('Training Alice, Bob - Epoch: %s', epoch)
 			self.iterate('bob', msg_val, key_seed_val)
-			print ('Training Eve - Epoch:', epoch)
+			self.logger.info('Training Eve - Epoch: %s', epoch)
 			self.iterate('eve', msg_val, key_seed_val)
-			print ('Training Alan - Epoch:', epoch)
+			self.logger.info('Training Alan - Epoch: %s', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
 			self.iterate('alan', msg_val, key_seed_val)
 		
 	def iterate(self, network, msg_val, key_seed_val):
-		iteration_progressbar = result_processor.progress_bar(steps=self.hyper_parameters["iterations"])
+		iteration_progressbar = progress_bar(steps=self.hyper_parameters["iterations"])
 		for i in range(self.hyper_parameters["iterations"]):
 			exercise = self.tfsession.run(
 						[self.optimizers[network], self.loss_functions[network][0]],
@@ -481,100 +542,106 @@ class model_trainer(object):
 		iteration_progressbar.finish()
 
 
-class result_processor:
-
-	start_time = datetime.datetime.now()
+class result_processor(base):
 	
-	def process_uptime(scheme):
-		uptime = datetime.datetime.now() - result_processor.start_time
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'result_processor')
+	
+	def process_uptime(self):
+		uptime = datetime.datetime.now() - self.start_time
 		print('Uptime: '+str(uptime))
 		with open('./saved_model_data/neurencoder-'
-			+scheme
+			+self.scheme
 			+'-Uptime-'
 			+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"), "w") as uptime_outfile:
 			uptime_outfile.write(str(uptime))
 			
-	def process_results(scheme, errors, build_mode, x_scale, x_scale_caption, y_scale_caption):
+	def process_results(self, build_mode):
 		seaborn.set_style("whitegrid")
 		legend = []
-		for net_name in errors:
-			pyplot.plot([epoch for epoch in range(1, (x_scale)+1)], errors[net_name])
+		for net_name in self.errors:
+			plt.plot([epoch for epoch in range(1, (self.plt_xScale)+1)], self.errors[net_name])
 			legend.append(net_name)
-		pyplot.legend(legend)
-		pyplot.xlabel(str(x_scale)+x_scale_caption)
-		pyplot.ylabel(y_scale_caption)
-		pyplot.savefig('./saved_model_data/neurencoder-'
-				+scheme
+		plt.legend(legend)
+		plt.xlabel(str(self.plt_xScale)+self.plt_xScale_caption)
+		plt.ylabel(self.plt_yScale_caption)
+		plt.savefig('./saved_model_data/neurencoder-'
+				+self.scheme
 				+"-"
 				+build_mode
 				+'-model-'
 				+'-plot_figure-'
 				+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 				+'.svg')
-		pyplot.show()
+		plt.show()
 		
-	def save_model(scheme, tfsession, model_saver, build_mode): 
-		model_saver.save(tfsession,
+	def save_model(self, build_mode): 
+		self.model_saver.save(self.tfsession,
 				'./saved_model_data/neurencoder-'
-				+scheme
+				+self.scheme
 				+"-"
 				+build_mode
 				+'-model-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
-	
-	class progress_bar(object):
-	
-		def __init__(self, steps):
-			self.current_progress_bar = progressbar.ProgressBar(maxval=steps,
-										widgets=[progressbar.Bar('+', '[', ']'),
-										' ', progressbar.Percentage()])
-			self.current_progress_bar.start()
+
 			
-		def update(self, step):
-			self.current_progress_bar.update(step)
-			
-		def finish(self):
-			self.current_progress_bar.finish()
+class general_model_engine(base):
+	
+	def __init__(self):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'general_model_engine')
 		
+	def ignite_model(self):
+		self.build_training_model()
+		self.run_training_model()
+		self.process_uptime()
+		self.save_model(build_mode='TRAINING')
+		self.process_results(build_mode='TRAINING')
+		self.build_testing_model()
+		self.run_testing_model()
+		self.process_results(build_mode='TESTING')
+
+class symmetric_model_engine(general_hyper_parameters, symmetric_hyper_parameters, helper_functions,
+					model_data, symmetric_training_model, symmetric_testing_model,
+					model_trainer, model_builder, symmetric_model_tester, general_model_engine, result_processor):
+	
+	def __init__(self, tfsession, scheme):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_model_engine')
+		self.logger.info(np.array([x.__name__ for x in inspect.getmro(self.__class__)]))
+		self.tfsession = tfsession
+		self.scheme = scheme
+		self.ignite_model()
+		
+class asymmetric_model_engine(general_hyper_parameters, asymmetric_hyper_parameters, helper_functions,
+					model_data, asymmetric_training_model, asymmetric_testing_model,
+					model_trainer, model_builder, asymmetric_model_tester, general_model_engine, result_processor):
+	
+	def __init__(self, tfsession, scheme):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'asymmetric_model_engine')
+		self.tfsession = tfsession
+		self.scheme = scheme
+		self.ignite_model()
+		
+class hybrid_model_engine(general_hyper_parameters, asymmetric_hyper_parameters, helper_functions,
+					model_data, hybrid_training_model, hybrid_testing_model, 
+					model_trainer, model_builder, symmetric_model_tester, general_model_engine, result_processor):
+	
+	def __init__(self, tfsession, scheme):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'hybrid_model_engine')
+		self.tfsession = tfsession
+		self.scheme = scheme
+		self.ignite_model()
+	
+	
 class neurencoder(object):
 	def __init__(self, tfsession, scheme):
 		if scheme == 'symmetric':
-			inherited_classes = [general_hyper_parameters, symmetric_hyper_parameters,
-					model_data, symmetric_training_model, symmetric_testing_model,
-					model_trainer, model_builder, symmetric_model_tester]
-		elif scheme == 'asymmetric':
-			inherited_classes = [general_hyper_parameters, asymmetric_hyper_parameters,
-					model_data, asymmetric_training_model, asymmetric_testing_model,
-					model_trainer, model_builder, asymmetric_model_tester]
-		else:
-			inherited_classes = [general_hyper_parameters, asymmetric_hyper_parameters,
-					model_data, hybrid_training_model, hybrid_testing_model, 
-					model_trainer, model_builder, symmetric_model_tester]
-		class model_engine(*inherited_classes,object):
-			def __init__(self, inherited_classes, tfsession, scheme):
-				self.tfsession = tfsession
-				self.scheme = scheme	
-				result_processor.start_time
-				for inherited_classe in inherited_classes:
-					inherited_classe.__init__(self)
-				self.build_training_model()
-				self.train()
-				print('errors in training', len(self.errors['bob']),
-				len(self.errors['eve']),
-				len(self.errors['alan']))
-				result_processor.process_uptime(self.scheme)
-				result_processor.save_model(self.scheme, self.tfsession, self.model_saver, 'TRAINING')
-				result_processor.process_results(self.scheme, self.errors, 'TRAINING',
-				x_scale=self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"],
-				x_scale_caption=' iterations', y_scale_caption='decryption errors')
-		
-				self.build_testing_model()
-				self.test()
-				print('errors in testing', len(self.errors['bob']),
-				len(self.errors['eve']),
-				len(self.errors['alan']))
-				result_processor.process_results(self.scheme, self.errors, 'TESTING',
-				x_scale=self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"],
-				x_scale_caption=' iterations', y_scale_caption='decryption errors')
-		modelEngine = model_engine(inherited_classes, tfsession, scheme)
-				
+			symmetric_model_engine(tfsession, scheme)
+		if scheme == 'asymmetric':
+			asymmetric_model_engine(tfsession, scheme)
+		if scheme == 'hybrid':
+			hybrid_model_engine(tfsession, scheme)
 		
