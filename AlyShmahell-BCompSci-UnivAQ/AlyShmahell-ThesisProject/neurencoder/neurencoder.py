@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn
+from pyqtgraph.Qt import QtGui, QtCore
+import pyqtgraph as pg
 import json
-import sys
+import sys, os
 import datetime
 import progressbar
 import logging.config
@@ -33,15 +35,7 @@ class base(object):
 	
 	def __init__(self):
 		self.init_logger()
-		self.logger.info('%s class is initiated', 'base')
-		self.hyper_parameters = json.load(open('hyper_parameters.json'))
-		self.tfsession = None
-		self.scheme = None
-		self.plt_xScale = self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"]
-		self.plt_xScale_caption = ' iterations'
-		self.plt_yScale_caption = 'decryption errors'
-		self.start_time = datetime.datetime.now()
-		
+		self.logger.info('%s class is initiated', 'base')		
 		
 
 class helper_functions(base):
@@ -63,6 +57,7 @@ class general_hyper_parameters(base):
 	def __init__(self):
 		super().__init__()
 		self.logger.info('%s class is initiated', 'general_hyper_parameters')
+		self.hyper_parameters = json.load(open('hyper_parameters.json'))
 		'''
 		' checking if the filter matrix shape and values are correct
 		'''
@@ -71,18 +66,10 @@ class general_hyper_parameters(base):
 				raise ValueError('there is something wrong with filters\' shape inside hyper_parameters.json')
 			if np.array_equal(self.hyper_parameters['filters'],
 						[
-							[self.hyper_parameters['filters'][0][0], 
-							1, 
-							self.hyper_parameters['filters'][0][2]],
-							[self.hyper_parameters['filters'][1][0], 
-							self.hyper_parameters['filters'][0][2], 
-							self.hyper_parameters['filters'][1][2]],
-							[self.hyper_parameters['filters'][2][0], 
-							self.hyper_parameters['filters'][1][2], 
-							self.hyper_parameters['filters'][2][2]],
-							[self.hyper_parameters['filters'][3][0], 
-							self.hyper_parameters['filters'][2][2], 
-							1]
+							[self.hyper_parameters['filters'][0][0], 1, self.hyper_parameters['filters'][0][2]],
+							[self.hyper_parameters['filters'][1][0], self.hyper_parameters['filters'][0][2], self.hyper_parameters['filters'][1][2]],
+							[self.hyper_parameters['filters'][2][0], self.hyper_parameters['filters'][1][2], self.hyper_parameters['filters'][2][2]],
+							[self.hyper_parameters['filters'][3][0], self.hyper_parameters['filters'][2][2], 1]
 						]) == False:
 				raise ValueError('there is something wrong with filter values inside hyper_parameters.json')
 		except ValueError as e:
@@ -117,16 +104,26 @@ class model_builder(base):
 	def __init__(self):
 		super().__init__()
 		self.logger.info('%s class is initiated', 'model_builder')
-
-	def build_1D_convolution(self, layer, build_mode, filter_shape, stride, name):
-		if build_mode == 'TRAINING':
-			with tf.variable_scope(name):
-				weight_filter = tf.get_variable('w', shape=filter_shape, 
-					initializer=tf.contrib.layers.xavier_initializer())
-				return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
+		
+	def build_net(self, net_name, net_input, no_of_FC_layers, build_mode, halved_first_layer_flag=False):
+		if build_mode == 'training':
+			self.weights = [tf.get_variable(net_name+"_w"+str(whichFCL), 
+						[(self.hyper_parameters["key_seed_len"],0)
+							[halved_first_layer_flag==True and whichFCL==0]
+							+self.hyper_parameters["msg_len"], 
+							self.hyper_parameters["key_seed_len"]+self.hyper_parameters["msg_len"]],
+							initializer=tf.contrib.layers.xavier_initializer()) 
+							for whichFCL in range(self.hyper_parameters["No_of_FC_Layers"][net_name])]
 		else:
-			weight_filter = self.graph.get_tensor_by_name(name+"/w:0")
-			return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
+			self.graph = tf.get_default_graph()
+			self.weights = [self.graph.get_tensor_by_name(net_name+"_w"+str(whichFCL)+":0")
+					for whichFCL in range(self.hyper_parameters["No_of_FC_Layers"][net_name])]
+		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, self.weights[0]))
+		for i in range(1, no_of_FC_layers):
+			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[i]))
+		hidden_layer = tf.expand_dims(fc_layer, 2)
+		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, net_name, build_mode))
+		return net
 		
 	def build_4_1D_convolutions(self, hidden_layer, name, build_mode):
 		convolution_0 = tf.nn.leaky_relu(
@@ -142,26 +139,16 @@ class model_builder(base):
 			self.build_1D_convolution(convolution_2, build_mode, 
 				self.hyper_parameters["filters"][3], stride=1, name=name+'_conv3'))
 		return convolution_3
-	
-	def build_net(self, net_name, net_input, no_of_FC_layers, build_mode, halved_first_layer_flag=False):
-		if build_mode == 'TRAINING':
-			self.weights = [tf.get_variable(net_name+"_w"+str(NoFCL), 
-						[(self.hyper_parameters["key_seed_len"],0)
-							[halved_first_layer_flag==True and NoFCL==0]
-							+self.hyper_parameters["msg_len"], 
-							self.hyper_parameters["key_seed_len"]+self.hyper_parameters["msg_len"]],
-							initializer=tf.contrib.layers.xavier_initializer()) 
-							for NoFCL in range(self.hyper_parameters["No_of_FC_Layers"][net_name])]
+		
+	def build_1D_convolution(self, layer, build_mode, filter_shape, stride, name):
+		if build_mode == 'training':
+			with tf.variable_scope(name):
+				weight_filter = tf.get_variable('w', shape=filter_shape, 
+					initializer=tf.contrib.layers.xavier_initializer())
+				return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
 		else:
-			self.graph = tf.get_default_graph()
-			self.weights = [self.graph.get_tensor_by_name(net_name+"_w"+str(NoFCL)+":0")
-					for NoFCL in range(self.hyper_parameters["No_of_FC_Layers"][net_name])]
-		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, self.weights[0]))
-		for i in range(1, no_of_FC_layers):
-			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[i]))
-		hidden_layer = tf.expand_dims(fc_layer, 2)
-		net = tf.squeeze(self.build_4_1D_convolutions(hidden_layer, net_name, build_mode))
-		return net
+			weight_filter = self.graph.get_tensor_by_name(name+"/w:0")
+			return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
 
 
 class model_data(base):
@@ -200,22 +187,22 @@ class asymmetric_training_model(base):
 	def build_training_model(self):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net('pub_key_gen', self.placeholders['key_seed'],
-						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'TRAINING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training', True)
 		self.networks['priv_key_generator'] = self.build_net('priv_key_gen', self.networks['pub_key_generator'],
-						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'TRAINING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'training', True)
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.networks['pub_key_generator']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'training', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.networks['alice'],
 					self.networks['priv_key_generator']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training', False)
 		
 		self.networks['eve'] = self.build_net('eve', tf.concat([self.networks['alice'], 
 					self.networks['pub_key_generator']], 1), 
-							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', False)
 		self.networks['alan'] = self.build_net('alan', tf.concat([self.networks['alice'], 
 					self.networks['pub_key_generator']], 1), 
-							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', False)
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob'])),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob']))
@@ -231,6 +218,14 @@ class asymmetric_training_model(base):
 					'eve': [var for var in self.tf_trainable_variables if 'eve_' in var.name],
 					'alan': [var for var in self.tf_trainable_variables if 'alan_' in var.name]
 					}
+		'''
+		' debugs training_variables
+		'
+		'''
+		for net in self.training_variables:
+			for var in self.training_variables[net]:
+				self.logger.debug(var)
+		''''''
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(
 						self.hyper_parameters["learning_rate"]).minimize(
@@ -251,22 +246,22 @@ class asymmetric_testing_model(base):
 					
 	def build_testing_model(self):
 		self.networks['pub_key_generator'] = self.build_net('pub_key_gen', self.placeholders['key_seed'],
-						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'TESTING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'testing', True)
 		self.networks['priv_key_generator'] = self.build_net('priv_key_gen', self.placeholders['pub_key'],
-						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'TESTING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'testing', True)
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['pub_key']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TESTING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'testing', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.placeholders['encrypted_msg'],
 					self.placeholders['priv_key']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TESTING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing', False)
 		
 		self.networks['eve'] = self.build_net('eve', tf.concat([self.placeholders['encrypted_msg'], 
 					self.placeholders['pub_key']], 1), 
-							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TESTING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', False)
 		self.networks['alan'] = self.build_net('alan', tf.concat([self.placeholders['encrypted_msg'], 
 					self.placeholders['pub_key']], 1), 
-							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', False)
 				
 				
 class symmetric_training_model(base):
@@ -279,13 +274,13 @@ class symmetric_training_model(base):
 		self.networks = {}
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1),
-					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TRAINING', False)
+					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'training', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.networks['alice'], self.placeholders['key_seed']],1),
-					self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TRAINING', False)
+					self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training', False)
 		self.networks['eve'] = self.build_net('eve', self.networks['alice'], 
-					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TRAINING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
 		self.networks['alan'] = self.build_net('alan', self.networks['alice'], 
-					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TRAINING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob'])),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob']))
@@ -302,13 +297,13 @@ class symmetric_training_model(base):
 					'alan': [var for var in tf_trainable_variables if 'alan_' in var.name]
 					}
 		'''
-		' debugging
+		' debugs training_variables
 		'
+		'''
 		for net in self.training_variables:
 			for var in self.training_variables[net]:
-				print(var)
-		'''
-			
+				self.logger.debug(var)
+		''''''	
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(self.hyper_parameters["learning_rate"]).minimize(
 						self.loss_functions['bob'][1], var_list=self.training_variables['bob'])],
@@ -328,14 +323,14 @@ class symmetric_testing_model(base):
 	def build_testing_model(self):
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1),
-					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TESTING', False)
+					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'testing', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.placeholders['encrypted_msg'],
 		 			self.placeholders['key_seed']],1),
-		 			self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TESTING', False)
+		 			self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing', False)
 		self.networks['eve'] = self.build_net('eve', self.placeholders['encrypted_msg'],
-					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TESTING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
 		self.networks['alan'] = self.build_net('alan', self.placeholders['encrypted_msg'],
-					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
 
 
 class hybrid_training_model(base):
@@ -347,20 +342,20 @@ class hybrid_training_model(base):
 	def build_training_model(self):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net('pub_key_gen', self.placeholders['key_seed'],
-						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'TRAINING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training', True)
 		self.networks['priv_key_generator'] = self.build_net('priv_key_gen', self.networks['pub_key_generator'],
-						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'TRAINING', True)
+						self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'training', True)
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.networks['pub_key_generator']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['alice'], 'training', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.networks['alice'],
 					self.networks['priv_key_generator']],1),
-							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TRAINING', False)
+							self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training', False)
 		
 		self.networks['eve'] = self.build_net('eve', self.networks['alice'], 
-							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TRAINING', True)
+							self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
 		self.networks['alan'] = self.build_net('alan', self.networks['alice'], 
-							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TRAINING', True)
+							self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
 		self.loss_functions = {
 					'bob': [tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob'])),
 						tf.reduce_mean(tf.abs(self.placeholders['msg'] - self.networks['bob']))
@@ -376,6 +371,14 @@ class hybrid_training_model(base):
 					'eve': [var for var in self.tf_trainable_variables if 'eve_' in var.name],
 					'alan': [var for var in self.tf_trainable_variables if 'alan_' in var.name]
 					}
+		'''
+		' debugs training_variables
+		'
+		'''
+		for net in self.training_variables:
+			for var in self.training_variables[net]:
+				self.logger.debug(var)
+		''''''
 		self.optimizers = {
 					'bob': [tf.train.AdamOptimizer(
 						self.hyper_parameters["learning_rate"]).minimize(
@@ -397,14 +400,14 @@ class hybrid_testing_model(base):
 	def build_testing_model(self):
 		self.networks['alice'] = self.build_net('alice', 
 					tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],1),
-					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'TESTING', False)
+					self.hyper_parameters["No_of_FC_Layers"]['alice'], 'testing', False)
 		self.networks['bob'] = self.build_net('bob', tf.concat([self.placeholders['encrypted_msg'],
 		 			self.placeholders['key_seed']],1),
-		 			self.hyper_parameters["No_of_FC_Layers"]['bob'], 'TESTING', False)
+		 			self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing', False)
 		self.networks['eve'] = self.build_net('eve', self.placeholders['encrypted_msg'],
-					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'TESTING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
 		self.networks['alan'] = self.build_net('alan', self.placeholders['encrypted_msg'],
-					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'TESTING', True)
+					self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
 
 
 class asymmetric_model_tester(base):
@@ -416,18 +419,19 @@ class asymmetric_model_tester(base):
 	def run_testing_model(self):
 		self.reset_errors()
 		self.model_saver = tf.train.Saver()
+		#self.dynamic_plot_init(build_mode='testing')
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			self.logger.info('Testing Key-Pair Generation - Epoch: %s', epoch)
+			self.logger.info('testing Key-Pair Generation - Epoch: %s', epoch)
 			self.iterate_pub_key_generation(key_seed_val)
 			self.iterate_priv_key_generation()
-			self.logger.info('Testing Alice - Epoch: %s', epoch)
+			self.logger.info('testing Alice - Epoch: %s', epoch)
 			self.iterate_alice(msg_val)
-			self.logger.info('Testing Bob - Epoch: %s', epoch)
+			self.logger.info('testing Bob - Epoch: %s', epoch)
 			self.iterate_decryptors('bob', msg_val, key_seed_val)
-			self.logger.info('Testing eve - Epoch: %s', epoch)
+			self.logger.info('testing eve - Epoch: %s', epoch)
 			self.iterate_decryptors('eve', msg_val, key_seed_val)
-			self.logger.info('Testing Alan - Epoch: %s', epoch)
+			self.logger.info('testing Alan - Epoch: %s', epoch)
 			self.iterate_decryptors('alan', msg_val, key_seed_val)
 			
 	def iterate_pub_key_generation(self, key_seed_val):
@@ -436,6 +440,7 @@ class asymmetric_model_tester(base):
 			self.pub_key_val = self.tfsession.run(self.networks['pub_key_generator'],
 						feed_dict={self.placeholders['key_seed']: key_seed_val})
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 		
 	def iterate_priv_key_generation(self):
@@ -444,6 +449,7 @@ class asymmetric_model_tester(base):
 			self.priv_key_val = self.tfsession.run(self.networks['priv_key_generator'],
 						feed_dict={self.placeholders['pub_key']: self.pub_key_val})
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 		
 	def iterate_alice(self, msg_val):
@@ -453,6 +459,7 @@ class asymmetric_model_tester(base):
 						feed_dict={self.placeholders['msg']: msg_val,
 						self.placeholders['pub_key']: self.pub_key_val})
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 		
 	def iterate_decryptors(self, network, msg_val, key_seed_val):
@@ -467,6 +474,7 @@ class asymmetric_model_tester(base):
 						self.placeholders['key_seed']: key_seed_val})
 			self.errors[network].append(test_results)
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 
 class symmetric_model_tester(base):
@@ -478,15 +486,16 @@ class symmetric_model_tester(base):
 	def run_testing_model(self):
 		self.reset_errors()
 		self.model_saver = tf.train.Saver()
+		#self.dynamic_plot_init(build_mode='testing')
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			self.logger.info('Testing Alice - Epoch: %s', epoch)
+			self.logger.info('testing Alice - Epoch: %s', epoch)
 			self.iterate_alice(msg_val, key_seed_val)
-			self.logger.info('Testing Bob - Epoch: %s', epoch)
+			self.logger.info('testing Bob - Epoch: %s', epoch)
 			self.iterate_decryptors('bob', msg_val, key_seed_val)
-			self.logger.info('Testing Eve - Epoch: %s', epoch)
+			self.logger.info('testing Eve - Epoch: %s', epoch)
 			self.iterate_decryptors('eve', msg_val, key_seed_val)
-			self.logger.info('Testing Alan - Epoch: %s', epoch)
+			self.logger.info('testing Alan - Epoch: %s', epoch)
 			self.iterate_decryptors('alan', msg_val, key_seed_val)
 			
 	def iterate_alice(self, msg_val, key_seed_val):
@@ -496,6 +505,7 @@ class symmetric_model_tester(base):
 						feed_dict={self.placeholders['msg']: msg_val,
 						self.placeholders['key_seed']: key_seed_val})
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 		
 	def iterate_decryptors(self, network, msg_val, key_seed_val):
@@ -508,6 +518,7 @@ class symmetric_model_tester(base):
 						self.placeholders['encrypted_msg']: self.encrypted_msg_val})
 			self.errors[network].append(test_results)
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 			
 
@@ -520,13 +531,14 @@ class model_trainer(base):
 	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
+		#self.dynamic_plot_init(build_mode='training')
 		for epoch in range(1, self.hyper_parameters["epochs"]+1):
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			self.logger.info('Training Alice, Bob - Epoch: %s', epoch)
+			self.logger.info('training Alice, Bob - Epoch: %s', epoch)
 			self.iterate('bob', msg_val, key_seed_val)
-			self.logger.info('Training Eve - Epoch: %s', epoch)
+			self.logger.info('training Eve - Epoch: %s', epoch)
 			self.iterate('eve', msg_val, key_seed_val)
-			self.logger.info('Training Alan - Epoch: %s', epoch)
+			self.logger.info('training Alan - Epoch: %s', epoch)
 			msg_val, key_seed_val = self.gen_data(tensor_rank_multiplier=self.hyper_parameters["batch_size"])
 			self.iterate('alan', msg_val, key_seed_val)
 		
@@ -539,6 +551,7 @@ class model_trainer(base):
 						self.placeholders['key_seed']: key_seed_val})
 			self.errors[network].append(exercise[1])
 			iteration_progressbar.update(i+1)
+			#self.dynamic_plot_update()
 		iteration_progressbar.finish()
 
 
@@ -547,15 +560,33 @@ class result_processor(base):
 	def __init__(self):
 		super().__init__()
 		self.logger.info('%s class is initiated', 'result_processor')
-	
-	def process_uptime(self):
-		uptime = datetime.datetime.now() - self.start_time
-		print('Uptime: '+str(uptime))
-		with open('./saved_model_data/neurencoder-'
-			+self.scheme
-			+'-Uptime-'
-			+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"), "w") as uptime_outfile:
-			uptime_outfile.write(str(uptime))
+		self.plt_xScale = self.hyper_parameters["epochs"]*self.hyper_parameters["iterations"]
+		self.plt_xScale_caption = str(self.plt_xScale)+ ' iterations'
+		self.plt_yScale_caption = 'decryption errors'
+		self.model_data_subpath = './saved_model_data/' + datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")	
+		os.makedirs(self.model_data_subpath)
+		
+	def dynamic_plot_init(self, build_mode):
+		pg.setConfigOption('background', 'w')
+		pg.setConfigOption('foreground', 'k')
+		self.win = pg.GraphicsWindow(title=self.scheme)
+		pg.setConfigOptions(antialias=True)
+		self.plotter = self.win.addPlot(title=build_mode)
+		self.legend = pg.LegendItem()
+		self.legend.setParentItem(self.plotter)
+		self.curves = []
+		for net_number, net_name in enumerate(self.errors):
+			red = (net_number+np.random.randint(0,255))%255
+			green = (net_number+np.random.randint(0,255))%255
+			blue = (net_number+np.random.randint(0,255))%255
+			self.newPen = pg.mkPen(color=(red, green, blue), width=2)  
+			self.curves.append(self.plotter.plot(pen=self.newPen))
+			self.legend.addItem(self.curves[len(self.curves)-1], net_name)
+		
+	def dynamic_plot_update(self):
+		pg.QtGui.QApplication.processEvents()
+		for net_number, net_name in enumerate(self.errors):
+			self.curves[net_number].setData(self.errors[net_name])
 			
 	def process_results(self, build_mode):
 		seaborn.set_style("whitegrid")
@@ -564,25 +595,16 @@ class result_processor(base):
 			plt.plot([epoch for epoch in range(1, (self.plt_xScale)+1)], self.errors[net_name])
 			legend.append(net_name)
 		plt.legend(legend)
-		plt.xlabel(str(self.plt_xScale)+self.plt_xScale_caption)
+		plt.xlabel(self.plt_xScale_caption+'\nUptime: '+str(datetime.datetime.now() - self.start_time))
 		plt.ylabel(self.plt_yScale_caption)
-		plt.savefig('./saved_model_data/neurencoder-'
-				+self.scheme
-				+"-"
-				+build_mode
-				+'-model-'
-				+'-plot_figure-'
-				+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-				+'.svg')
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + self.scheme + '-' + build_mode
+		plt.savefig(self.mode_data_relative_file_name + '.svg')
 		plt.show()
 		
-	def save_model(self, build_mode): 
-		self.model_saver.save(self.tfsession,
-				'./saved_model_data/neurencoder-'
-				+self.scheme
-				+"-"
-				+build_mode
-				+'-model-'+datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+		
+	def save_model(self, build_mode):
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + self.scheme + '-' + build_mode
+		self.model_saver.save(self.tfsession, self.mode_data_relative_file_name + '-model')
 
 			
 class general_model_engine(base):
@@ -592,45 +614,52 @@ class general_model_engine(base):
 		self.logger.info('%s class is initiated', 'general_model_engine')
 		
 	def ignite_model(self):
+		self.start_time = datetime.datetime.now()
 		self.build_training_model()
 		self.run_training_model()
-		self.process_uptime()
-		self.save_model(build_mode='TRAINING')
-		self.process_results(build_mode='TRAINING')
+		self.process_results(build_mode='training')
+		self.save_model(build_mode='training')
+		self.start_time = datetime.datetime.now()
 		self.build_testing_model()
 		self.run_testing_model()
-		self.process_results(build_mode='TESTING')
-
-class symmetric_model_engine(general_hyper_parameters, symmetric_hyper_parameters, helper_functions,
-					model_data, symmetric_training_model, symmetric_testing_model,
-					model_trainer, model_builder, symmetric_model_tester, general_model_engine, result_processor):
-	
-	def __init__(self, tfsession, scheme):
-		super().__init__()
-		self.logger.info('%s class is initiated', 'symmetric_model_engine')
-		self.logger.info(np.array([x.__name__ for x in inspect.getmro(self.__class__)]))
-		self.tfsession = tfsession
-		self.scheme = scheme
-		self.ignite_model()
+		self.process_results(build_mode='testing')
+		self.save_model(build_mode='testing')
 		
-class asymmetric_model_engine(general_hyper_parameters, asymmetric_hyper_parameters, helper_functions,
+		
+class asymmetric_model_engine(result_processor, asymmetric_hyper_parameters, helper_functions,
 					model_data, asymmetric_training_model, asymmetric_testing_model,
-					model_trainer, model_builder, asymmetric_model_tester, general_model_engine, result_processor):
+					model_trainer, model_builder, asymmetric_model_tester, general_model_engine, general_hyper_parameters):
 	
 	def __init__(self, tfsession, scheme):
 		super().__init__()
 		self.logger.info('%s class is initiated', 'asymmetric_model_engine')
+		# self.logger.info('inherited classes stack:\n%s',np.array([x.__name__ for x in inspect.getmro(self.__class__)]))
 		self.tfsession = tfsession
 		self.scheme = scheme
 		self.ignite_model()
 		
-class hybrid_model_engine(general_hyper_parameters, asymmetric_hyper_parameters, helper_functions,
+
+class symmetric_model_engine(result_processor, symmetric_hyper_parameters, helper_functions,
+					model_data, symmetric_training_model, symmetric_testing_model,
+					model_trainer, model_builder, symmetric_model_tester, general_model_engine, general_hyper_parameters):
+	
+	def __init__(self, tfsession, scheme):
+		super().__init__()
+		self.logger.info('%s class is initiated', 'symmetric_model_engine')
+		# self.logger.info('inherited classes stack:\n%s',np.array([x.__name__ for x in inspect.getmro(self.__class__)]))
+		self.tfsession = tfsession
+		self.scheme = scheme
+		self.ignite_model()
+		
+		
+class hybrid_model_engine(result_processor, asymmetric_hyper_parameters, helper_functions,
 					model_data, hybrid_training_model, hybrid_testing_model, 
-					model_trainer, model_builder, symmetric_model_tester, general_model_engine, result_processor):
+					model_trainer, model_builder, symmetric_model_tester, general_model_engine, general_hyper_parameters):
 	
 	def __init__(self, tfsession, scheme):
 		super().__init__()
 		self.logger.info('%s class is initiated', 'hybrid_model_engine')
+		# self.logger.info('inherited classes stack:\n%s',np.array([x.__name__ for x in inspect.getmro(self.__class__)]))
 		self.tfsession = tfsession
 		self.scheme = scheme
 		self.ignite_model()

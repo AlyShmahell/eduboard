@@ -23,6 +23,14 @@
             "filename": "log/info.log",
             "maxBytes": 1e+7
         },
+        
+        "debug_file_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "DEBUG",
+            "formatter": "simple",
+            "filename": "log/debug.log",
+            "maxBytes": 1e+7
+        },
 
         "error_file_handler": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -34,7 +42,7 @@
     },
 
     "root": {
-        "level": "INFO",
-        "handlers": ["console", "info_file_handler", "error_file_handler"]
+        "level": "DEBUG",
+        "handlers": ["console", "info_file_handler", "debug_file_handler", "error_file_handler"]
     }
 }
