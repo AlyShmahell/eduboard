@@ -752,7 +752,7 @@ class model_trainer(base):
 	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
-		#self.dynamic_plot_init(build_mode='training')
+		self.dynamic_plot_init(build_mode='training')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.gen_data(
 			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
@@ -777,7 +777,7 @@ class model_trainer(base):
 			    })
 			self.errors[network].append(exercise[1])
 			iteration_progressbar.update(i + 1)
-			#self.dynamic_plot_update()
+			self.dynamic_plot_update()
 		iteration_progressbar.finish()
 
 
@@ -802,10 +802,15 @@ class result_processor(base):
 		self.legend = pg.LegendItem()
 		self.legend.setParentItem(self.plotter)
 		self.curves = []
+		rand_color_components = []
 		for net_number, net_name in enumerate(self.errors):
-			red = (net_number + np.random.randint(0, 255)) % 255
-			green = (net_number + np.random.randint(0, 255)) % 255
-			blue = (net_number + np.random.randint(0, 255)) % 255
+			rand_color_component = np.random.randint(20, 255)
+			while rand_color_component in [color_component+25 for color_component in rand_color_components]:
+				rand_color_component = np.random.randint(20, 255)
+			rand_color_components.append(rand_color_component)
+			red = (1%(net_number+1) * rand_color_component) % 255
+			green = (2%(net_number+1) * rand_color_component) % 255
+			blue = (3%(net_number+1) * rand_color_component) % 255
 			self.newPen = pg.mkPen(color=(red, green, blue), width=2)
 			self.curves.append(self.plotter.plot(pen=self.newPen))
 			self.legend.addItem(self.curves[len(self.curves) - 1], net_name)
