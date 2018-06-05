@@ -10,7 +10,6 @@ import sys, os
 import datetime
 import progressbar
 import logging.config
-import inspect
 logging.config.dictConfig(json.load(open('log/logging.json')))
 logger = logging.getLogger()
 
@@ -232,7 +231,7 @@ class neurencoder_base(object):
 	def dynamic_plot_init(self, build_mode):
 		pg.setConfigOption('background', 'w')
 		pg.setConfigOption('foreground', 'k')
-		self.win = pg.GraphicsWindow(title=self.scheme)
+		self.win = pg.GraphicsWindow(title=tf.flags.FLAGS.scheme)
 		pg.setConfigOptions(antialias=True)
 		self.plotter = self.win.addPlot(title=build_mode)
 		self.legend = pg.LegendItem()
@@ -267,12 +266,12 @@ class neurencoder_base(object):
 		plt.xlabel(self.plt_xScale_caption + '\nUptime: ' +
 		           str(datetime.datetime.now() - self.start_time))
 		plt.ylabel(self.plt_yScale_caption)
-		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + self.scheme + '-' + build_mode
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + build_mode
 		plt.savefig(self.mode_data_relative_file_name + '.svg')
 		plt.show()
 
 	def save_model(self, build_mode):
-		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + self.scheme + '-' + build_mode
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + build_mode
 		self.model_saver.save(self.tfsession,
 		                      self.mode_data_relative_file_name + '-model')
 		                      
@@ -282,6 +281,7 @@ class neurencoder_base(object):
 	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
+		self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph())
 		#self.dynamic_plot_init(build_mode='training')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.gen_data(
@@ -822,13 +822,15 @@ class hybrid_testing_model(object):
 
 			
 class neurencoder(object):
-	def __init__(self, tfsession, scheme):
+
+	def __init__(self, tfsession):
+		tf.flags.DEFINE_string('scheme', 'symmetric', 'chooses an encryption scheme, default: symmetric')
 		logger.info('%s class is initiated', 'neurencoder')
-		if scheme == 'symmetric':
+		if tf.flags.FLAGS.scheme == 'symmetric':
 			inherited_classes = [symmetric_model_tester, symmetric_testing_model,
 					symmetric_training_model, neurencoder_base, 
 					symmetric_hyper_parameters]
-		elif scheme == 'asymmetric':
+		elif tf.flags.FLAGS.scheme == 'asymmetric':
 			inherited_classes = [asymmetric_model_tester, asymmetric_testing_model,
 					asymmetric_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters]
@@ -837,12 +839,11 @@ class neurencoder(object):
 					hybrid_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters]
 		class model_engine(*inherited_classes,object):
-			def __init__(self, tfsession, scheme):
+			def __init__(self, tfsession):
 				super().__init__()
 				logger.info('Method Resolution Order:\n%s',np.array([x.__name__ for x in self.__class__.__mro__]))
 				logger.info('%s class is initiated', 'model_engine')
 				self.tfsession = tfsession
-				self.scheme = scheme
 				self.start_time = datetime.datetime.now()
 				self.build_training_model()
 				self.run_training_model()
@@ -853,7 +854,7 @@ class neurencoder(object):
 				self.run_testing_model()
 				self.process_results(build_mode='testing')
 				self.save_model(build_mode='testing')
-		modelEngine = model_engine(tfsession, scheme)
+		modelEngine = model_engine(tfsession)
 
 
 '''
@@ -861,12 +862,11 @@ class neurencoder(object):
 class model_engine_symmetric(symmetric_model_tester, symmetric_testing_model,
 					symmetric_training_model, neurencoder_base, 
 					symmetric_hyper_parameters):
-	def __init__(self, tfsession, scheme):
+	def __init__(self, tfsession):
 		super().__init__()
 		logger.info('Method Resolution Order:\n%s',np.array([x.__name__ for x in self.__class__.__mro__]))
 		logger.info('%s class is initiated', 'model_engine')
 		self.tfsession = tfsession
-		self.scheme = scheme
 		self.start_time = datetime.datetime.now()
 		self.build_training_model()
 		self.run_training_model()
@@ -881,12 +881,11 @@ class model_engine_symmetric(symmetric_model_tester, symmetric_testing_model,
 class model_engine_asymmetric(asymmetric_model_tester, asymmetric_testing_model,
 					asymmetric_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters):
-	def __init__(self, tfsession, scheme):
+	def __init__(self, tfsession):
 		super().__init__()
 		logger.info('Method Resolution Order:\n%s',np.array([x.__name__ for x in self.__class__.__mro__]))
 		logger.info('%s class is initiated', 'model_engine')
 		self.tfsession = tfsession
-		self.scheme = scheme
 		self.start_time = datetime.datetime.now()
 		self.build_training_model()
 		self.run_training_model()
@@ -901,12 +900,11 @@ class model_engine_asymmetric(asymmetric_model_tester, asymmetric_testing_model,
 class model_engine_hybrid(symmetric_model_tester, hybrid_testing_model,
 					hybrid_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters):
-	def __init__(self, tfsession, scheme):
+	def __init__(self, tfsession):
 		super().__init__()
 		logger.info('Method Resolution Order:\n%s',np.array([x.__name__ for x in self.__class__.__mro__]))
 		logger.info('%s class is initiated', 'model_engine')
 		self.tfsession = tfsession
-		self.scheme = scheme
 		self.start_time = datetime.datetime.now()
 		self.build_training_model()
 		self.run_training_model()
@@ -919,11 +917,12 @@ class model_engine_hybrid(symmetric_model_tester, hybrid_testing_model,
 		self.save_model(build_mode='testing')
 		
 class neurencoder(object):
-	def __init__(self, tfsession, scheme):
-		if scheme == 'symmetric':
-			model_engine_symmetric(tfsession, scheme)
-		elif scheme == 'asymmetric':
-			model_engine_asymmetric(tfsession, scheme)
+	def __init__(self, tfsession):
+		tf.flags.DEFINE_string('scheme', 'symmetric', 'chooses an encryption scheme, default: symmetric')
+		if tf.flags.FLAGS.scheme == 'symmetric':
+			model_engine_symmetric(tfsession)
+		elif tf.flags.FLAGS.scheme == 'asymmetric':
+			model_engine_asymmetric(tfsession)
 		else:
-			model_engine_hybrid(tfsession, scheme)
+			model_engine_hybrid(tfsession)
 '''

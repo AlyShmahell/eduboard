@@ -2,7 +2,7 @@ import argparse
 import sys
 from neurencoder import *
 
-
+'''
 class scheme_option(object):
 	def __init__(self):
 		scheme = self.parse_arguments().symmetric + self.parse_arguments().asymmetric + self.parse_arguments().hybrid
@@ -26,10 +26,10 @@ class scheme_option(object):
 				    default = '',
 				    help='chooses the hybrid model')
 		return parser.parse_args()
-
+'''
 
 if __name__ == '__main__':
 
 	# config=tf.ConfigProto(log_device_placement=True)
 	with tf.Session() as tfsession:
-		neurencoder = neurencoder(tfsession, scheme_option().scheme)
+		neurencoder = neurencoder(tfsession)
