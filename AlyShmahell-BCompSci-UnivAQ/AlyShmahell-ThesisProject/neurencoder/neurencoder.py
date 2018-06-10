@@ -1,3 +1,6 @@
+import json
+import sys, os
+import datetime
 import tensorflow as tf
 import numpy as np
 import matplotlib
@@ -5,9 +8,6 @@ import matplotlib.pyplot as plt
 import seaborn
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
-import json
-import sys, os
-import datetime
 import progressbar
 import logging.config
 logging.config.dictConfig(json.load(open('log/logging.json')))
@@ -49,6 +49,7 @@ class general_hyper_parameters(object):
 		except ValueError as e:
 			logger.error(e)
 			sys.exit()
+			
 
 
 class asymmetric_hyper_parameters(general_hyper_parameters):
@@ -281,7 +282,7 @@ class neurencoder_base(object):
 	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
-		self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph())
+		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
 		#self.dynamic_plot_init(build_mode='training')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.gen_data(
@@ -834,10 +835,12 @@ class neurencoder(object):
 			inherited_classes = [asymmetric_model_tester, asymmetric_testing_model,
 					asymmetric_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters]
-		else:
+		elif tf.flags.FLAGS.scheme == 'hybrid':
 			inherited_classes = [symmetric_model_tester, hybrid_testing_model,
 					hybrid_training_model, neurencoder_base, 
 					asymmetric_hyper_parameters]
+		else:
+			sys.exit('choose one shceme, and one scheme only: symmetric (default), asymmetric, hybrid')
 		class model_engine(*inherited_classes,object):
 			def __init__(self, tfsession):
 				super().__init__()
@@ -923,6 +926,8 @@ class neurencoder(object):
 			model_engine_symmetric(tfsession)
 		elif tf.flags.FLAGS.scheme == 'asymmetric':
 			model_engine_asymmetric(tfsession)
-		else:
+		elif tf.flags.FLAGS.scheme == 'hybrid':
 			model_engine_hybrid(tfsession)
+		else:
+			sys.exit('choose one shceme, and one scheme only: symmetric (default), asymmetric, hybrid')
 '''
