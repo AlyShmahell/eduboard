@@ -202,6 +202,54 @@ class neurencoder_base(object):
 		else:
 			weight_filter = self.graph.get_tensor_by_name(name + "/w:0")
 			return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
+			
+	'''
+	' model trainer
+	'''
+	def run_training_model(self):
+		tf.global_variables_initializer().run()
+		self.model_saver = tf.train.Saver()
+		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
+		#self.dynamic_plot_init(build_mode='training')
+		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
+			msg_val, key_seed_val = self.gen_data(
+			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			logger.info('training Alice, Bob - Epoch: %s', epoch)
+			self.iterate('bob', msg_val, key_seed_val)
+			logger.info('training Eve - Epoch: %s', epoch)
+			self.iterate('eve', msg_val, key_seed_val)
+			logger.info('training Alan - Epoch: %s', epoch)
+			msg_val, key_seed_val = self.gen_data(
+			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			self.iterate('alan', msg_val, key_seed_val)
+
+	def iterate(self, network, msg_val, key_seed_val):
+		self.progressbar_init(
+		    steps=self.hyper_parameters["iterations"])
+		for i in range(self.hyper_parameters["iterations"]):
+			exercise = self.tfsession.run(
+			    [self.optimizers[network], self.loss_functions[network][0]],
+			    feed_dict={
+			        self.placeholders['msg']: msg_val,
+			        self.placeholders['key_seed']: key_seed_val
+			    })
+			self.errors[network].append(exercise[1])
+			self.progressbar_update(i + 1)
+			#self.dynamic_plot_update()
+		self.progressbar_finish()
+		
+	def test_data_shape(self):
+		msg_val, key_seed_val = self.gen_data(
+			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+		exercise = self.tfsession.run([self.networks['alice'], self.networks['bob'], self.networks['eve'], self.networks['alan']],
+			    feed_dict={
+			        self.placeholders['msg']: msg_val,
+			        self.placeholders['key_seed']: key_seed_val
+			    })
+		logger.debug('alice\'s output shape: %s ', exercise[0].shape)
+		logger.debug('bob\'s output shape: %s ', exercise[1].shape)
+		logger.debug('eve\'s output shape: %s ', exercise[2].shape)
+		logger.debug('alan\'s output shape: %s ', exercise[3].shape)
 
 	'''
 	' result processor
@@ -275,41 +323,6 @@ class neurencoder_base(object):
 		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + build_mode
 		self.model_saver.save(self.tfsession,
 		                      self.mode_data_relative_file_name + '-model')
-		                      
-	'''
-	' model trainer
-	'''
-	def run_training_model(self):
-		tf.global_variables_initializer().run()
-		self.model_saver = tf.train.Saver()
-		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
-		#self.dynamic_plot_init(build_mode='training')
-		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			logger.info('training Alice, Bob - Epoch: %s', epoch)
-			self.iterate('bob', msg_val, key_seed_val)
-			logger.info('training Eve - Epoch: %s', epoch)
-			self.iterate('eve', msg_val, key_seed_val)
-			logger.info('training Alan - Epoch: %s', epoch)
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
-			self.iterate('alan', msg_val, key_seed_val)
-
-	def iterate(self, network, msg_val, key_seed_val):
-		self.progressbar_init(
-		    steps=self.hyper_parameters["iterations"])
-		for i in range(self.hyper_parameters["iterations"]):
-			exercise = self.tfsession.run(
-			    [self.optimizers[network], self.loss_functions[network][0]],
-			    feed_dict={
-			        self.placeholders['msg']: msg_val,
-			        self.placeholders['key_seed']: key_seed_val
-			    })
-			self.errors[network].append(exercise[1])
-			self.progressbar_update(i + 1)
-			#self.dynamic_plot_update()
-		self.progressbar_finish()
 
 
 class asymmetric_training_model(object):
@@ -850,6 +863,7 @@ class neurencoder(object):
 				self.start_time = datetime.datetime.now()
 				self.build_training_model()
 				self.run_training_model()
+				self.test_data_shape()
 				self.process_results(build_mode='training')
 				self.save_model(build_mode='training')
 				self.start_time = datetime.datetime.now()
