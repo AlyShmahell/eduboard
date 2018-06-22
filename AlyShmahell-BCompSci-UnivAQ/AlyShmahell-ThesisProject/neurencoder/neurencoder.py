@@ -117,9 +117,9 @@ class neurencoder_base(object):
 	random_binary = lambda self, shape, dtype, partition_info=None:\
 		(tf.random_uniform(shape, minval = 0, maxval = 2, dtype=dtype)*2-1)
 
-	def gen_data(self, tensor_rank_multiplier):
-		return (np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["msg_len"]))*2-1),\
-            	(np.random.randint(0, 2, size=(tensor_rank_multiplier, self.hyper_parameters["key_seed_len"]))*2-1)
+	def generate_data(self, local_batch_size):
+		return (np.random.randint(0, 2, size=(local_batch_size, self.hyper_parameters["msg_len"]))*2-1),\
+            	(np.random.randint(0, 2, size=(local_batch_size, self.hyper_parameters["key_seed_len"]))*2-1)
 
 	'''
 	' model builder
@@ -212,15 +212,15 @@ class neurencoder_base(object):
 		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
 		#self.dynamic_plot_init(build_mode='training')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			msg_val, key_seed_val = self.generate_data(
+			    local_batch_size=self.hyper_parameters["batch_size"])
 			logger.info('training Alice, Bob - Epoch: %s', epoch)
 			self.iterate('bob', msg_val, key_seed_val)
 			logger.info('training Eve - Epoch: %s', epoch)
 			self.iterate('eve', msg_val, key_seed_val)
 			logger.info('training Alan - Epoch: %s', epoch)
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			msg_val, key_seed_val = self.generate_data(
+			    local_batch_size=self.hyper_parameters["batch_size"])
 			self.iterate('alan', msg_val, key_seed_val)
 
 	def iterate(self, network, msg_val, key_seed_val):
@@ -239,8 +239,8 @@ class neurencoder_base(object):
 		self.progressbar_finish()
 		
 	def test_data_shape(self):
-		msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+		msg_val, key_seed_val = self.generate_data(
+			    local_batch_size=self.hyper_parameters["batch_size"])
 		exercise = self.tfsession.run([self.networks['alice'], self.networks['bob'], self.networks['eve'], self.networks['alan']],
 			    feed_dict={
 			        self.placeholders['msg']: msg_val,
@@ -480,8 +480,8 @@ class asymmetric_model_tester(object):
 		self.model_saver = tf.train.Saver()
 		#self.dynamic_plot_init(build_mode='testing')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			msg_val, key_seed_val = self.generate_data(
+			    local_batch_size=self.hyper_parameters["batch_size"])
 			logger.info('testing Key-Pair Generation - Epoch: %s', epoch)
 			self.iterate_pub_key_generation(key_seed_val)
 			self.iterate_priv_key_generation()
@@ -670,8 +670,8 @@ class symmetric_model_tester(object):
 		self.model_saver = tf.train.Saver()
 		#self.dynamic_plot_init(build_mode='testing')
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
-			msg_val, key_seed_val = self.gen_data(
-			    tensor_rank_multiplier=self.hyper_parameters["batch_size"])
+			msg_val, key_seed_val = self.generate_data(
+			    local_batch_size=self.hyper_parameters["batch_size"])
 			logger.info('testing Alice - Epoch: %s', epoch)
 			self.iterate_alice(msg_val, key_seed_val)
 			logger.info('testing Bob - Epoch: %s', epoch)
