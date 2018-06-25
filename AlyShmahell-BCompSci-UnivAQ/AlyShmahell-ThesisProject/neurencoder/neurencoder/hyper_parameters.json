@@ -2,9 +2,9 @@
 	"msg_len" : 16,
 	"key_seed_len" : 16,
 	"batch_size" : 512,
-	"epochs" : 10,
+	"epochs" : 2,
 	"learning_rate" : 0.0008,
-	"iterations" : 2000,
+	"iterations" : 100,
 	"filters" : [
 			[8, 1, 2],
 			[4, 2, 4],
