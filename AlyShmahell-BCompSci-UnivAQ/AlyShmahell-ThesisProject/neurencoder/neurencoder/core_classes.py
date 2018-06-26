@@ -127,6 +127,7 @@ class neurencoder_base(object):
 	def build_net(self,
 	              net_name,
 	              net_input,
+	              no_of_FC_layers,
 	              build_mode,
 	              halved_first_layer_flag=False):
 		if build_mode == 'training':
@@ -150,7 +151,7 @@ class neurencoder_base(object):
 			    range(self.hyper_parameters["No_of_FC_Layers"][net_name])
 			]
 		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, self.weights[0]))
-		for i in range(1, self.hyper_parameters["No_of_FC_Layers"][net_name]):
+		for i in range(1, no_of_FC_layers):
 			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[i]))
 		hidden_layer = tf.expand_dims(fc_layer, 2)
 		net = tf.squeeze(
@@ -333,35 +334,37 @@ class asymmetric_training_model(object):
 	def build_training_model(self):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net(
-		    'pub_key_gen', self.placeholders['key_seed'], 'training',
+		    'pub_key_gen', self.placeholders['key_seed'],
+		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
 		    'priv_key_gen', self.networks['pub_key_generator'],
+		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'],
 		    'training', True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat(
 		        [self.placeholders['msg'], self.networks['pub_key_generator']],
-		        1),
+		        1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'training', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['priv_key_generator']],
-		        1), 'training',
+		        1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training',
 		    False)
 
 		self.networks['eve'] = self.build_net(
 		    'eve',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['pub_key_generator']],
-		        1), 'training',
+		        1), self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training',
 		    False)
 		self.networks['alan'] = self.build_net(
 		    'alan',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['pub_key_generator']],
-		        1),
+		        1), self.hyper_parameters["No_of_FC_Layers"]['alan'],
 		    'training', False)
 		self.loss_functions = {
 		    'bob': [
@@ -432,35 +435,37 @@ class asymmetric_testing_model(object):
 
 	def build_testing_model(self):
 		self.networks['pub_key_generator'] = self.build_net(
-		    'pub_key_gen', self.placeholders['key_seed'], 'testing',
+		    'pub_key_gen', self.placeholders['key_seed'],
+		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'testing',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
-		    'priv_key_gen', self.placeholders['pub_key'], 'testing',
+		    'priv_key_gen', self.placeholders['pub_key'],
+		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'testing',
 		    True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['pub_key']],
-		              1),
+		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'testing', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['priv_key']
-		    ], 1), 'testing',
+		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
 		    False)
 
 		self.networks['eve'] = self.build_net(
 		    'eve',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'], self.placeholders['pub_key']
-		    ], 1), 'testing',
+		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing',
 		    False)
 		self.networks['alan'] = self.build_net(
 		    'alan',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'], self.placeholders['pub_key']
-		    ], 1), 'testing',
+		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing',
 		    False)
 		    
 		    
@@ -554,17 +559,19 @@ class symmetric_training_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1),
+		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'training', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([self.networks['alice'], self.placeholders['key_seed']],
-		              1),
+		              1), self.hyper_parameters["No_of_FC_Layers"]['bob'],
 		    'training', False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.networks['alice'], 'training', True)
+		    'eve', self.networks['alice'],
+		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.networks['alice'], 'training', True)
+		    'alan', self.networks['alice'],
+		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
 		self.loss_functions = {
 		    'bob': [
 		        tf.reduce_mean(
@@ -635,19 +642,21 @@ class symmetric_testing_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1),
+		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'testing', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['key_seed']
-		    ], 1), 'testing',
+		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
 		    False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.placeholders['encrypted_msg'], 'testing', True)
+		    'eve', self.placeholders['encrypted_msg'],
+		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.placeholders['encrypted_msg'], 'testing', True)
+		    'alan', self.placeholders['encrypted_msg'],
+		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
 		    
 		    
 class symmetric_model_tester(object):
@@ -712,28 +721,32 @@ class hybrid_training_model(object):
 	def build_training_model(self):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net(
-		    'pub_key_gen', self.placeholders['key_seed'], 'training',
+		    'pub_key_gen', self.placeholders['key_seed'],
+		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
 		    'priv_key_gen', self.networks['pub_key_generator'],
+		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'],
 		    'training', True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat(
 		        [self.placeholders['msg'], self.networks['pub_key_generator']],
-		        1),
+		        1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'training', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['priv_key_generator']],
-		        1), 'training',
+		        1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training',
 		    False)
 
 		self.networks['eve'] = self.build_net(
-		    'eve', self.networks['alice'], 'training', True)
+		    'eve', self.networks['alice'],
+		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.networks['alice'], 'training', True)
+		    'alan', self.networks['alice'],
+		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
 		self.loss_functions = {
 		    'bob': [
 		        tf.reduce_mean(
@@ -805,19 +818,21 @@ class hybrid_testing_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1),
+		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
 		    'testing', False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['key_seed']
-		    ], 1), 'testing',
+		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
 		    False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.placeholders['encrypted_msg'], 'testing', True)
+		    'eve', self.placeholders['encrypted_msg'],
+		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.placeholders['encrypted_msg'], 'testing', True)
+		    'alan', self.placeholders['encrypted_msg'],
+		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
 
 			
 class neurencoder(object):
