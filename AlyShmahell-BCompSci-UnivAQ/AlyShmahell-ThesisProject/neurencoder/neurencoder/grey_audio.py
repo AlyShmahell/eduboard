@@ -68,3 +68,8 @@ class grey_repr(object):
 			width /= 2
 			height *= 2
 		return (int(width), int(height))
+
+if __name__ == '__main__':
+	rand_audio = audio_randomness.get_randaudio(512, 16)
+	grey_repr.get_grey_repr(rand_audio)
+
