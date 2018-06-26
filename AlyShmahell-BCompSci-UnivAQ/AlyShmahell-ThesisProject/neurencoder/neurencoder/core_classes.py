@@ -127,10 +127,8 @@ class neurencoder_base(object):
 	def build_net(self,
 	              net_name,
 	              net_input,
-	              no_of_FC_layers,
-	              build_mode,
 	              halved_first_layer_flag=False):
-		if build_mode == 'training':
+		if self.build_mode == 'training':
 			self.weights = [
 			    tf.get_variable(
 			        net_name + "_w" + str(whichFCL),
@@ -151,47 +149,43 @@ class neurencoder_base(object):
 			    range(self.hyper_parameters["No_of_FC_Layers"][net_name])
 			]
 		fc_layer = tf.nn.sigmoid(tf.matmul(net_input, self.weights[0]))
-		for i in range(1, no_of_FC_layers):
+		for i in range(1, self.hyper_parameters["No_of_FC_Layers"][net_name]):
 			fc_layer = tf.nn.sigmoid(tf.matmul(fc_layer, self.weights[i]))
 		hidden_layer = tf.expand_dims(fc_layer, 2)
 		net = tf.squeeze(
-		    self.build_4_1D_convolutions(hidden_layer, net_name, build_mode))
+		    self.build_4_1D_convolutions(hidden_layer, net_name))
 		return net
 
-	def build_4_1D_convolutions(self, hidden_layer, name, build_mode):
+	def build_4_1D_convolutions(self, hidden_layer, name):
 		convolution_0 = tf.nn.leaky_relu(
 		    self.build_1D_convolution(
 		        hidden_layer,
-		        build_mode,
 		        self.hyper_parameters["filters"][0],
 		        stride=1,
 		        name=name + '_conv0'))
 		convolution_1 = tf.nn.leaky_relu(
 		    self.build_1D_convolution(
 		        convolution_0,
-		        build_mode,
 		        self.hyper_parameters["filters"][1],
 		        stride=2,
 		        name=name + '_conv1'))
 		convolution_2 = tf.nn.leaky_relu(
 		    self.build_1D_convolution(
 		        convolution_1,
-		        build_mode,
 		        self.hyper_parameters["filters"][2],
 		        stride=1,
 		        name=name + '_conv2'))
 		convolution_3 = tf.nn.tanh(
 		    self.build_1D_convolution(
 		        convolution_2,
-		        build_mode,
 		        self.hyper_parameters["filters"][3],
 		        stride=1,
 		        name=name + '_conv3'))
 		return convolution_3
 
-	def build_1D_convolution(self, layer, build_mode, filter_shape, stride,
+	def build_1D_convolution(self, layer, filter_shape, stride,
 	                         name):
-		if build_mode == 'training':
+		if self.build_mode == 'training':
 			with tf.variable_scope(name):
 				weight_filter = tf.get_variable(
 				    'w',
@@ -210,7 +204,7 @@ class neurencoder_base(object):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
 		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
-		#self.dynamic_plot_init(build_mode='training')
+		#self.dynamic_plot_init()
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.generate_data(
 			    local_batch_size=self.hyper_parameters["batch_size"])
@@ -277,12 +271,12 @@ class neurencoder_base(object):
 	def progressbar_finish(self):
 		self.current_progress_bar.finish()
 		
-	def dynamic_plot_init(self, build_mode):
+	def dynamic_plot_init(self):
 		pg.setConfigOption('background', 'w')
 		pg.setConfigOption('foreground', 'k')
 		self.win = pg.GraphicsWindow(title=tf.flags.FLAGS.scheme)
 		pg.setConfigOptions(antialias=True)
-		self.plotter = self.win.addPlot(title=build_mode)
+		self.plotter = self.win.addPlot(title=self.build_mode)
 		self.legend = pg.LegendItem()
 		self.legend.setParentItem(self.plotter)
 		self.curves = []
@@ -304,7 +298,7 @@ class neurencoder_base(object):
 		for net_number, net_name in enumerate(self.errors):
 			self.curves[net_number].setData(self.errors[net_name])
 
-	def process_results(self, build_mode):
+	def process_results(self):
 		seaborn.set_style("whitegrid")
 		legend = []
 		for net_name in self.errors:
@@ -315,12 +309,12 @@ class neurencoder_base(object):
 		plt.xlabel(self.plt_xScale_caption + '\nUptime: ' +
 		           str(datetime.datetime.now() - self.start_time))
 		plt.ylabel(self.plt_yScale_caption)
-		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + build_mode
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + self.build_mode
 		plt.savefig(self.mode_data_relative_file_name + '.svg')
 		plt.show()
 
-	def save_model(self, build_mode):
-		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + build_mode
+	def save_model(self):
+		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + self.build_mode
 		self.model_saver.save(self.tfsession,
 		                      self.mode_data_relative_file_name + '-model')
 
@@ -335,37 +329,32 @@ class asymmetric_training_model(object):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net(
 		    'pub_key_gen', self.placeholders['key_seed'],
-		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
-		    'priv_key_gen', self.networks['pub_key_generator'],
-		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'],
-		    'training', True)
+		    'priv_key_gen', self.networks['pub_key_generator'], True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat(
 		        [self.placeholders['msg'], self.networks['pub_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'training', False)
+		        1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['priv_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training',
+		        1),
 		    False)
 
 		self.networks['eve'] = self.build_net(
 		    'eve',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['pub_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training',
+		        1),
 		    False)
 		self.networks['alan'] = self.build_net(
 		    'alan',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['pub_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['alan'],
-		    'training', False)
+		        1), False)
 		self.loss_functions = {
 		    'bob': [
 		        tf.reduce_mean(
@@ -436,36 +425,33 @@ class asymmetric_testing_model(object):
 	def build_testing_model(self):
 		self.networks['pub_key_generator'] = self.build_net(
 		    'pub_key_gen', self.placeholders['key_seed'],
-		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'testing',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
 		    'priv_key_gen', self.placeholders['pub_key'],
-		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'], 'testing',
 		    True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['pub_key']],
-		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'testing', False)
+		              1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['priv_key']
-		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
+		    ], 1),
 		    False)
 
 		self.networks['eve'] = self.build_net(
 		    'eve',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'], self.placeholders['pub_key']
-		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing',
+		    ], 1),
 		    False)
 		self.networks['alan'] = self.build_net(
 		    'alan',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'], self.placeholders['pub_key']
-		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing',
+		    ], 1),
 		    False)
 		    
 		    
@@ -478,7 +464,7 @@ class asymmetric_model_tester(object):
 	def run_testing_model(self):
 		self.reset_errors()
 		self.model_saver = tf.train.Saver()
-		#self.dynamic_plot_init(build_mode='testing')
+		#self.dynamic_plot_init()
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.generate_data(
 			    local_batch_size=self.hyper_parameters["batch_size"])
@@ -559,19 +545,15 @@ class symmetric_training_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'training', False)
+		              1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([self.networks['alice'], self.placeholders['key_seed']],
-		              1), self.hyper_parameters["No_of_FC_Layers"]['bob'],
-		    'training', False)
+		              1), False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.networks['alice'],
-		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
+		    'eve', self.networks['alice'], True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.networks['alice'],
-		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
+		    'alan', self.networks['alice'], True)
 		self.loss_functions = {
 		    'bob': [
 		        tf.reduce_mean(
@@ -642,21 +624,18 @@ class symmetric_testing_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'testing', False)
+		              1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['key_seed']
-		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
+		    ], 1),
 		    False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.placeholders['encrypted_msg'],
-		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
+		    'eve', self.placeholders['encrypted_msg'], True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.placeholders['encrypted_msg'],
-		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
+		    'alan', self.placeholders['encrypted_msg'], True)
 		    
 		    
 class symmetric_model_tester(object):
@@ -668,7 +647,7 @@ class symmetric_model_tester(object):
 	def run_testing_model(self):
 		self.reset_errors()
 		self.model_saver = tf.train.Saver()
-		#self.dynamic_plot_init(build_mode='testing')
+		#self.dynamic_plot_init()
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.generate_data(
 			    local_batch_size=self.hyper_parameters["batch_size"])
@@ -722,31 +701,25 @@ class hybrid_training_model(object):
 		self.networks = {}
 		self.networks['pub_key_generator'] = self.build_net(
 		    'pub_key_gen', self.placeholders['key_seed'],
-		    self.hyper_parameters["No_of_FC_Layers"]['pub_key_gen'], 'training',
 		    True)
 		self.networks['priv_key_generator'] = self.build_net(
-		    'priv_key_gen', self.networks['pub_key_generator'],
-		    self.hyper_parameters["No_of_FC_Layers"]['priv_key_gen'],
-		    'training', True)
+		    'priv_key_gen', self.networks['pub_key_generator'], True)
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat(
 		        [self.placeholders['msg'], self.networks['pub_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'training', False)
+		        1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat(
 		        [self.networks['alice'], self.networks['priv_key_generator']],
-		        1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'training',
+		        1),
 		    False)
 
 		self.networks['eve'] = self.build_net(
-		    'eve', self.networks['alice'],
-		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'training', True)
+		    'eve', self.networks['alice'], True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.networks['alice'],
-		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'training', True)
+		    'alan', self.networks['alice'], True)
 		self.loss_functions = {
 		    'bob': [
 		        tf.reduce_mean(
@@ -818,21 +791,18 @@ class hybrid_testing_model(object):
 		self.networks['alice'] = self.build_net(
 		    'alice',
 		    tf.concat([self.placeholders['msg'], self.placeholders['key_seed']],
-		              1), self.hyper_parameters["No_of_FC_Layers"]['alice'],
-		    'testing', False)
+		              1), False)
 		self.networks['bob'] = self.build_net(
 		    'bob',
 		    tf.concat([
 		        self.placeholders['encrypted_msg'],
 		        self.placeholders['key_seed']
-		    ], 1), self.hyper_parameters["No_of_FC_Layers"]['bob'], 'testing',
+		    ], 1),
 		    False)
 		self.networks['eve'] = self.build_net(
-		    'eve', self.placeholders['encrypted_msg'],
-		    self.hyper_parameters["No_of_FC_Layers"]['eve'], 'testing', True)
+		    'eve', self.placeholders['encrypted_msg'], True)
 		self.networks['alan'] = self.build_net(
-		    'alan', self.placeholders['encrypted_msg'],
-		    self.hyper_parameters["No_of_FC_Layers"]['alan'], 'testing', True)
+		    'alan', self.placeholders['encrypted_msg'], True)
 
 			
 class neurencoder(object):
@@ -861,14 +831,17 @@ class neurencoder(object):
 				logger.info('%s class is initiated', 'model_engine')
 				self.tfsession = tfsession
 				self.start_time = datetime.datetime.now()
+				self.build_mode = 'training'
 				self.build_training_model()
 				self.run_training_model()
-				self.test_data_shape()
-				self.process_results(build_mode='training')
-				self.save_model(build_mode='training')
+				#self.test_data_shape()
+				self.process_results()
+				self.save_model()
 				self.start_time = datetime.datetime.now()
+				self.build_mode = 'testing'
 				self.build_testing_model()
 				self.run_testing_model()
-				self.process_results(build_mode='testing')
-				self.save_model(build_mode='testing')
+				#self.test_data_shape()
+				self.process_results()
+				self.save_model()
 		modelEngine = model_engine(tfsession)
