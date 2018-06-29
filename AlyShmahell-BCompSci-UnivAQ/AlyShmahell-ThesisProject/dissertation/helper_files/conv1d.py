@@ -1,2 +1,0 @@
-for sample in batch:
-	

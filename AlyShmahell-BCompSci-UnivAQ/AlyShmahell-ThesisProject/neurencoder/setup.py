@@ -20,6 +20,7 @@ setuptools.setup(
 	'matplotlib>=2.2.2',
 	'seaborn>=0.8.1',
 	'pyqtgraph>=0.10.0'
+	'datetime>=4.2'
 	],
 	scripts=['extra-requirements.sh'],
 	packages=setuptools.find_packages(),
