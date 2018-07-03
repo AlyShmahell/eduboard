@@ -9,6 +9,7 @@ footskip=.25in]{geometry}
 \usepackage{xcolor}
 \usepackage{pdfpages}
 \usepackage{graphicx}
+\graphicspath{{../images/}}
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{dirtree}
@@ -160,10 +161,10 @@ As we can see in the table of accesses, the \textbf{Routes} table is accessed ve
 Also, the \textbf{ownShips} table is accessed as frequently as the \textbf{Ships} table, but poses another un-necessary structural redundancy, therefor should be deleted and substituted with a binary attribute \textbf{"isOwn"} in the \textbf{Ships} table.
 \newpage
 \section*{Physical Schema - MySQL Code (Tables, Constraints, Triggers, Procedures)}
-\inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{mercantileShips.sql}
+\inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{../../MySQL Code/AlyShmahell-mercantileShips.sql}
 \newpage
 \section*{Tool setup on Ubuntu 16.04 (Bash File)}
-\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{setup.sh}
+\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{../../prerequisites.sh}
 \newpage
 \begin{flushleft}
 	\section*{\textbf{Code Repository}}
