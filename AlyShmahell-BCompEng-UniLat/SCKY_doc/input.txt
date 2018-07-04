@@ -1,0 +1,4 @@
+// assume the following input:
+I am a function
+// which gives the next tokens line:
+pron verb det noun
