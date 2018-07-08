@@ -1,0 +1,6 @@
+tensorflow-gpu>=1.8.0
+numpy>=1.14.2
+progressbar2>=3.37.1
+matplotlib>=2.2.2
+seaborn>=0.8.1
+pyqtgraph>=0.10.0datetime>=4.2

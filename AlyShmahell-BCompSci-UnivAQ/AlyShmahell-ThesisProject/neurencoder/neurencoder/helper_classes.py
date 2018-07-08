@@ -1,9 +1,19 @@
+# -*- coding: utf-8 -*-
+"""The helper classes of neurencoder."""
+__author__ = "Aly Shmahell"
+__copyright__ = "Copyright 2018, Aly Shmahell"
+__license__ = "All Rights Reserved"
+__version__ = "1.0"
+__maintainer__ = "Aly Shmahell"
+__email__ = "aly.shmahell@gmail.com"
+__status__ = "Git Tag"
+
+import sys
 import hashlib
 import sounddevice as sd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import sys
 
 class audio_randomness(object):
 	

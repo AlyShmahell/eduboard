@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: neurencoder
+Version: 1.0
+Summary: Hyper Heuristic Cryptography with Mixed Adversarial Nets
+Home-page: https://gitlab.com/AlyShmahell/AlyShmahell-BachelorThesis
+Author: Aly Shmahell
+Author-email: aly.shmahell@gmail.com
+License: Copyrights © 2018, Aly Shmahell. All Rights Reserved.
+Description: My BCompSc Thesis: Hyper Heuristic Cryptography with Mixed Adversarial Nets. This Package Contains the Project Part of the Thesis.
+        
+Platform: Ubuntu 16.04
+Description-Content-Type: text/markdown

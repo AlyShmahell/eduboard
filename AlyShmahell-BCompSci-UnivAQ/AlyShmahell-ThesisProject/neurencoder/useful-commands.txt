@@ -1,0 +1,28 @@
+git filter-branch \
+    --index-filter 'git rm -r --cached * && git reset $GIT_COMMIT --  \
+    third-party/sty_files/* \
+    neurencoder/LICENSE neurencoder/README.md \
+    neurencoder/setup.py \
+    neurencoder/extra-requirements.sh \
+    neurencoder/legacy-requirements.sh \
+    neurencoder/neurencoder/core_classes.py \
+    neurencoder/neurencoder/helper_classes.py \
+    neurencoder/neurencoder/__init__.py \
+    neurencoder/neurencoder/hyper_parameters.json \
+    neurencoder/neurencoder/main.py \
+    neurencoder/neurencoder/log/* \
+    neurencoder/neurencoder/test.py \
+    neurencoder/neurencoder/example/* \
+    neurencoder/neurencoder/saved_model_data/2018-05-24-12:11:39/* \
+    neurencoder/neurencoder/saved_model_data/2018-05-24-12:39:31/* \
+    neurencoder/neurencoder/saved_model_data/2018-05-24-13:04:14/* \
+    dissertation/* \    
+    ' --prune-empty
+    
+    
+                      
+
+    
+             
+    
+

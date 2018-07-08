@@ -1,5 +1,23 @@
+# -*- coding: utf-8 -*-
+"""The core classes of neurencoder."""
+__author__ = "Aly Shmahell"
+__copyright__ = "Copyright 2018, Aly Shmahell"
+__license__ = "All Rights Reserved"
+__version__ = "1.0"
+__maintainer__ = "Aly Shmahell"
+__email__ = "aly.shmahell@gmail.com"
+__status__ = "Git Tag"
+
+'''
+' required python 3 builtin modules
+'''
 import json
 import sys, os
+from os.path import expanduser
+
+'''
+' required python 3 3rd-party modules
+'''
 import datetime
 import tensorflow as tf
 import numpy as np
@@ -10,16 +28,35 @@ from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import progressbar
 import logging.config
-logging.config.dictConfig(json.load(open('log/logging.json')))
+
+'''
+' optional own modules
+'''
+from neurencoder.helper_classes import *
+
+'''
+' neurencoder data paths initialization
+'''
+home_directory = expanduser("~")
+neurencoder_data_home = home_directory + '/neurencoder-data/saved_model_data/'
+if not os.path.exists(neurencoder_data_home):
+	os.makedirs(neurencoder_data_home)
+	
+'''
+' logger initialization
+'''
+logging_configuration_file = os.path.join(os.path.dirname(__file__), 'logging_config.json')
+logging.config.dictConfig(json.load(open(logging_configuration_file)))
 logger = logging.getLogger()
 
 
 class general_hyper_parameters(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'general_hyper_parameters')
-		self.hyper_parameters = json.load(open('hyper_parameters.json'))
+		super().__init__()
+		hyper_parameters_file = os.path.join(os.path.dirname(__file__), 'hyper_parameters.json')
+		self.hyper_parameters = json.load(open(hyper_parameters_file))
 		'''
 		' checking if the filter matrix shape and values are correct
 		'''
@@ -55,8 +92,8 @@ class general_hyper_parameters(object):
 class asymmetric_hyper_parameters(general_hyper_parameters):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'asymmetric_hyper_parameters')
+		super().__init__()
 		self.hyper_parameters['No_of_FC_Layers']['eve'] = 2 * (
 		    self.hyper_parameters['No_of_FC_Layers']['alice'] +
 		    self.hyper_parameters['No_of_FC_Layers']['bob'] +
@@ -69,8 +106,8 @@ class asymmetric_hyper_parameters(general_hyper_parameters):
 class symmetric_hyper_parameters(general_hyper_parameters):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'symmetric_hyper_parameters')
+		super().__init__()
 		self.hyper_parameters['No_of_FC_Layers'][
 		    'eve'] = 2 * (self.hyper_parameters['No_of_FC_Layers']['alice'] +
 		                  self.hyper_parameters['No_of_FC_Layers']['bob'])
@@ -81,8 +118,8 @@ class symmetric_hyper_parameters(general_hyper_parameters):
 class neurencoder_base(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'neurencoder_base')
+		super().__init__()
 		self.init_model_data()
 		self.init_result_processor()
 
@@ -203,7 +240,7 @@ class neurencoder_base(object):
 	def run_training_model(self):
 		tf.global_variables_initializer().run()
 		self.model_saver = tf.train.Saver()
-		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = './tensorboard-log', graph=tf.get_default_graph().as_graph_def())
+		#self.model_SummaryWriter = tf.summary.FileWriter(logdir = neurencoder_data_home + 'tensorboard-log', graph=tf.get_default_graph().as_graph_def())
 		#self.dynamic_plot_init()
 		for epoch in range(1, self.hyper_parameters["epochs"] + 1):
 			msg_val, key_seed_val = self.generate_data(
@@ -252,7 +289,7 @@ class neurencoder_base(object):
 		self.plt_xScale = self.hyper_parameters["epochs"] * self.hyper_parameters["iterations"]
 		self.plt_xScale_caption = str(self.plt_xScale) + ' iterations'
 		self.plt_yScale_caption = 'decryption errors'
-		self.model_data_subpath = './saved_model_data/' + datetime.datetime.now(
+		self.model_data_subpath = neurencoder_data_home + datetime.datetime.now(
 		).strftime("%Y-%m-%d-%H:%M:%S")
 		os.makedirs(self.model_data_subpath)
 		
@@ -322,8 +359,8 @@ class neurencoder_base(object):
 class asymmetric_training_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'asymmetric_training_model')
+		super().__init__()
 
 	def build_training_model(self):
 		self.networks = {}
@@ -419,8 +456,8 @@ class asymmetric_training_model(object):
 class asymmetric_testing_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'asymmetric_testing_model')
+		super().__init__()
 
 	def build_testing_model(self):
 		self.networks['pub_key_generator'] = self.build_net(
@@ -458,8 +495,8 @@ class asymmetric_testing_model(object):
 class asymmetric_model_tester(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'asymmetric_model_tester')
+		super().__init__()
 
 	def run_testing_model(self):
 		self.reset_errors()
@@ -537,8 +574,8 @@ class asymmetric_model_tester(object):
 class symmetric_training_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'symmetric_training_model')
+		super().__init__()
 
 	def build_training_model(self):
 		self.networks = {}
@@ -617,8 +654,8 @@ class symmetric_training_model(object):
 class symmetric_testing_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'symmetric_testing_model')
+		super().__init__()
 
 	def build_testing_model(self):
 		self.networks['alice'] = self.build_net(
@@ -641,8 +678,8 @@ class symmetric_testing_model(object):
 class symmetric_model_tester(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'symmetric_model_tester')
+		super().__init__()
 
 	def run_testing_model(self):
 		self.reset_errors()
@@ -694,8 +731,8 @@ class symmetric_model_tester(object):
 class hybrid_training_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'hybrid_training_model')
+		super().__init__()
 
 	def build_training_model(self):
 		self.networks = {}
@@ -784,8 +821,8 @@ class hybrid_training_model(object):
 class hybrid_testing_model(object):
 
 	def __init__(self):
-		super().__init__()
 		logger.info('%s class is initiated', 'hybrid_testing_model')
+		super().__init__()
 
 	def build_testing_model(self):
 		self.networks['alice'] = self.build_net(
@@ -808,8 +845,11 @@ class hybrid_testing_model(object):
 class neurencoder(object):
 
 	def __init__(self, tfsession):
-		tf.flags.DEFINE_string('scheme', 'symmetric', 'chooses an encryption scheme, default: symmetric')
+		'''
+		' This is where the neurencoder execution tree root is
+		'''
 		logger.info('%s class is initiated', 'neurencoder')
+		tf.flags.DEFINE_string('scheme', 'symmetric', 'chooses an encryption scheme, default: symmetric')
 		if tf.flags.FLAGS.scheme == 'symmetric':
 			inherited_classes = [symmetric_model_tester, symmetric_testing_model,
 					symmetric_training_model, neurencoder_base, 
