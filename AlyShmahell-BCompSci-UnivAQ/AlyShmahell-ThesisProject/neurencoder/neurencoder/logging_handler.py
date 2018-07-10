@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""a custom file handler for logging, to be used internally in the neurencoder project"""
+"""a custom file handler for logging, to be used internally in the neurencoder project."""
 __author__ = "Aly Shmahell"
-__copyright__ = "Copyright 2018, Aly Shmahell"
+__copyright__ = "Copyright © 2018, Aly Shmahell"
 __license__ = "All Rights Reserved"
-__version__ = "1.0"
+__version__ = "TDPR1"
 __maintainer__ = "Aly Shmahell"
 __email__ = "aly.shmahell@gmail.com"
-__status__ = "Git Tag"
+__status__ = "Thesis Defense PreRelease"
 
 import errno
 import os

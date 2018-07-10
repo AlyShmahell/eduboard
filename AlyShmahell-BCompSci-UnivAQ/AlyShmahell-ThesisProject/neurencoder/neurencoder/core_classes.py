@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """The core classes of neurencoder."""
 __author__ = "Aly Shmahell"
-__copyright__ = "Copyright 2018, Aly Shmahell"
+__copyright__ = "Copyright © 2018, Aly Shmahell"
 __license__ = "All Rights Reserved"
-__version__ = "1.0"
+__version__ = "TDPR1"
 __maintainer__ = "Aly Shmahell"
 __email__ = "aly.shmahell@gmail.com"
-__status__ = "Git Tag"
+__status__ = "Thesis Defense PreRelease"
 
 '''
 ' required python 3 builtin modules
@@ -224,15 +224,15 @@ class neurencoder_base(object):
 	                         name):
 		if self.build_mode == 'training':
 			with tf.variable_scope(name):
-				weight_filter = tf.get_variable(
+				filter_weights = tf.get_variable(
 				    'w',
 				    shape=filter_shape,
 				    initializer=tf.contrib.layers.xavier_initializer())
 				return tf.nn.conv1d(
-				    layer, weight_filter, stride, padding='SAME')
+				    layer, filter_weights, stride, padding='SAME')
 		else:
-			weight_filter = self.graph.get_tensor_by_name(name + "/w:0")
-			return tf.nn.conv1d(layer, weight_filter, stride, padding='SAME')
+			filter_weights = self.graph.get_tensor_by_name(name + "/w:0")
+			return tf.nn.conv1d(layer, filter_weights, stride, padding='SAME')
 			
 	'''
 	' model trainer
@@ -347,7 +347,7 @@ class neurencoder_base(object):
 		           str(datetime.datetime.now() - self.start_time))
 		plt.ylabel(self.plt_yScale_caption)
 		self.mode_data_relative_file_name = self.model_data_subpath + '/neurencoder-' + tf.flags.FLAGS.scheme + '-' + self.build_mode
-		plt.savefig(self.mode_data_relative_file_name + '.svg')
+		plt.savefig(self.mode_data_relative_file_name + '.pdf')
 		plt.show()
 
 	def save_model(self):

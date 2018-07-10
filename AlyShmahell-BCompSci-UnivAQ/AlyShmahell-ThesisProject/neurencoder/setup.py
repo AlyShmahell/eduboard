@@ -1,29 +1,23 @@
 import platform
 import re
 import sys
-import subprocess
 
 from setuptools import Extension, setup
 
 if sys.version_info < (3, 5):
-	raise Exception('Python 2.7 is not supported.')
-
-with open('README.md', 'r') as doc:
-	long_description = doc.read()
+	raise Exception('Only Python 3.5 is supported.')
 	
 with open('LICENSE', 'r') as legal:
-	license = legal.read()
+	license = " ".join(line.strip() for line in legal)
 
 setup(
 	name='neurencoder',
-	version='1.0',
+	version='TDPR1',
 	author='Aly Shmahell',
 	author_email='aly.shmahell@gmail.com',
 	description='Hyper Heuristic Cryptography with Mixed Adversarial Nets',
-	long_description=long_description,
-	long_description_content_type='text/markdown',
-	url='https://gitlab.com/AlyShmahell/AlyShmahell-BachelorThesis',
 	license=license,
+	url='https://gitlab.com/AlyShmahell/AlyShmahell-Thesis',
 	packages=['neurencoder'],
 	install_requires=[
 		'tensorflow-gpu>=1.8.0',
@@ -35,8 +29,24 @@ setup(
 		'datetime>=4.2'
 	],
 	platforms=['Ubuntu 16.04'],
-	scripts=['neurencoder_extra_requirements'],
+	scripts=['neurencoder-extra-requirements'],
 	entry_points = {
 		'console_scripts': ['neurencoder=neurencoder.executer:main'],
-      }
+      },
+      classifiers=[
+		'Development Status :: Thesis Defense PreRelease',
+		'Environment :: Console',
+		'Intended Audience :: Developers',
+		'Intended Audience :: Academic Researchers',
+		'Intended Audience :: Industry Researchers',
+		'Programming Language :: Python :: 3 :: 5',
+		'Topic :: Artificial Intelligence :: Adeversarial Neural Networks',
+		'Topic :: Artificial Intelligence :: Convolutional Neural Networks',
+		'Topic :: Artificial Intelligence :: Transfer Learning',
+		'Topic :: Cyrptology :: Symmetric Cryptography',
+		'Topic :: Cyrptology :: Asymmetric Cryptography',
+		'Topic :: Cyrptology :: Hybrid Cryptography',
+		'Usage :: Standalone :: neurencoder -scheme [symmetric, asymmetric, hybrid]',
+		'Usage :: Library :: from neurencoder import *',
+	],
 )

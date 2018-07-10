@@ -1,5 +1,5 @@
 README.md
-extra-requirements.sh
+neurencoder-extra-requirements
 neurencoder/__init__.py
 neurencoder/core_classes.py
 neurencoder/executer.py
