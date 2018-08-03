@@ -21,48 +21,39 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 import React from 'react';
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'jquery/dist/jquery.min.js';
+import * as Popper from 'popper.js';
+import '../css/CarboSem.css';
 import * as d3 from 'd3';
 import $ from 'jquery/dist/jquery.min.js';
 import {withFauxDOM} from 'react-faux-dom';
 
 class CarboSem extends React.Component {
 
-  constructor() {
-      super();
-      /*
-       * Global Variables (YUI Module Variables)
-       */
-      this.checkbox = {
-              "states": [],
-              "vals": [],
-              "colors": []
-          };
-      this.ledger = {
-              "elements": [],
-              "colors": []
-          };
-  }
-
-   submitQuery(){
-    /*
-     * resetting the checkbox area
-     */
-     this.checkbox["states"] = [];
-     this.checkbox["vals"] = [];
-     this.checkbox["colors"] = [];
-
-     /*
-      * resetting the ledger area
-      */
-     this.ledger["elements"] = [];
-     this.ledger["colors"] = [];
+    constructor(props) {
+      super(props);
+      this.drawGraph = this.drawGraph.bind(this);
   }
 
    drawGraph(){
+     alert('covenant dropships detected');
     const semCanvas = this.props.connectFauxDOM('canvas', 'semCanvas');
     const semDivAddedCheckbox = this.props.connectFauxDOM('div', 'semDivAddedCheckbox');
     const semDivAddedLedger = this.props.connectFauxDOM('div', 'semDivAddedLedger');
+
+    var checkbox = {
+            "states": [],
+            "vals": [],
+            "colors": []
+        };
+    var ledger = {
+                "elements": [],
+                "colors": []
+        };
     /*
      * defining color arrays
      */
@@ -74,9 +65,9 @@ class CarboSem extends React.Component {
             console.log(graph);
             return;
         }
-        else {
-          console.log(graph);
-        }
+        alert(graph.nodes[0].title);
+        console.log(graph);
+
 
         /*
          * cleaning up previously rendered checkboxes and ledger elements
@@ -87,43 +78,43 @@ class CarboSem extends React.Component {
         /*
          * initiating checkboxes after submitting a new query
          */
-        if (this.checkbox["states"].length == 0)
+        if (checkbox["states"].length == 0)
             for (var i = 0; i < graph.nodes.length; i++) {
                 if (graph.nodes[i].targets)
                     for (var j = 0; j < graph.nodes[i].targets.length; j++) {
-                        var pushState = this.checkbox["vals"].indexOf(graph.nodes[i].targets[j].type);
+                        var pushState = checkbox["vals"].indexOf(graph.nodes[i].targets[j].type);
                         if (pushState == -1) {
-                            this.checkbox["vals"].push(graph.nodes[i].targets[j].type);
-                            this.checkbox["states"].push(true);
-                            this.checkbox["colors"].push(linkColor(this.checkbox["states"].length - 1));
+                            checkbox["vals"].push(graph.nodes[i].targets[j].type);
+                            checkbox["states"].push(true);
+                            checkbox["colors"].push(linkColor(checkbox["states"].length - 1));
                         }
                     }
             }
         /*
          * rendering checkboxes as per their current states
          */
-        var addedCheckbox = d3.select(".form-group").append("div").attr("class", "checkbox").attr("id", semDivAddedCheckbox);
+        var addedCheckbox = d3.select(".form-group").append(semDivAddedCheckbox).attr("class", "checkbox").attr("id", 'addedCheckbox');
         var addedLabels = [];
         var addedBoxes = [];
         var beginCheckbox = addedCheckbox.append("label").text("{")
             .style("color", "floralwhite").style("padding-right", "10px");
-        for (var i = 0; i < this.checkbox["states"].length; i++) {
-            addedLabels[i] = addedCheckbox.append("label").attr("for", this.checkbox["vals"][i]).text(this.checkbox["vals"][i])
-                .style("color", this.checkbox["colors"][i]);
+        for (var i = 0; i < checkbox["states"].length; i++) {
+            addedLabels[i] = addedCheckbox.append("label").attr("for", checkbox["vals"][i]).text(checkbox["vals"][i])
+                .style("color", checkbox["colors"][i]);
             addedBoxes[i] = addedCheckbox.append("input")
                 .attr("type", "checkbox")
                 .attr("name", "function")
-                .attr("value", this.checkbox["vals"][i])
-                .attr("id", this.checkbox["vals"][i])
+                .attr("value", checkbox["vals"][i])
+                .attr("id", checkbox["vals"][i])
                 .style("opacity", 0)
-                .property("checked", this.checkbox["states"][i]);
+                .property("checked", checkbox["states"][i]);
         }
         var endCheckbox = addedCheckbox.append("label").text("}")
             .style("color", "floralwhite");
         addedCheckbox.on("change", function () {
-            for (var i = 0; i < this.checkbox["states"].length; i++) {
-                this.checkbox["states"][i] = addedBoxes[i].property("checked");
-                this.checkbox["colors"][i] = this.checkbox["states"][i] ? linkColor(i) : "#FFFFFF";
+            for (var i = 0; i < checkbox["states"].length; i++) {
+                checkbox["states"][i] = addedBoxes[i].property("checked");
+                checkbox["colors"][i] = checkbox["states"][i] ? linkColor(i) : "#FFFFFF";
             }
             drawGraph();
             return;
@@ -140,18 +131,18 @@ class CarboSem extends React.Component {
                     "title": graph.nodes[i].title
                 });
                 var ledgerInsertibility = false;
-                var ledgerIndex = this.ledger["elements"].findIndex(x => x == graph.nodes[i].label);
+                var ledgerIndex = ledger["elements"].findIndex(x => x == graph.nodes[i].label);
                 if (ledgerIndex < 0) {
-                    this.ledger["elements"].push(graph.nodes[i].label);
-                    this.ledger["colors"].push(nodeColor(this.ledger["elements"].length - 1));
+                    ledger["elements"].push(graph.nodes[i].label);
+                    ledger["colors"].push(nodeColor(ledger["elements"].length - 1));
                     ledgerInsertibility = true;
                 }
                 var source = nodes.length - 1;
                 var nodeValidity = 0;
                 for (var j = 0; j < graph.nodes[i].targets.length; j++) {
 
-                    var checkboxIndex = this.checkbox["vals"].findIndex(x => x == graph.nodes[i].targets[j].type);
-                    var checkboxIndexValidity = this.checkbox["states"][checkboxIndex];
+                    var checkboxIndex = checkbox["vals"].findIndex(x => x == graph.nodes[i].targets[j].type);
+                    var checkboxIndexValidity = checkbox["states"][checkboxIndex];
                     if (!checkboxIndexValidity)
                         continue;
                     else
@@ -166,10 +157,10 @@ class CarboSem extends React.Component {
                             "title": graph.nodes[graph.nodes[i].targets[j].target].title
                         });
                         target = nodes.length - 1;
-                        var ledgerIndex = this.ledger["elements"].findIndex(x => x == graph.nodes[graph.nodes[i].targets[j].target].label);
+                        var ledgerIndex = ledger["elements"].findIndex(x => x == graph.nodes[graph.nodes[i].targets[j].target].label);
                         if (ledgerIndex < 0) {
-                            this.ledger["elements"].push(graph.nodes[graph.nodes[i].targets[j].target].label);
-                            this.ledger["colors"].push(nodeColor(this.ledger["elements"].length - 1));
+                            ledger["elements"].push(graph.nodes[graph.nodes[i].targets[j].target].label);
+                            ledger["colors"].push(nodeColor(ledger["elements"].length - 1));
                         }
                     }
                     links.push({
@@ -181,8 +172,8 @@ class CarboSem extends React.Component {
                 if (nodeValidity == 0) {
                     nodes.pop();
                     if (ledgerInsertibility) {
-                        this.ledger["elements"].pop();
-                        this.ledger["colors"].pop();
+                        ledger["elements"].pop();
+                        ledger["colors"].pop();
                     }
                 }
             }
@@ -198,15 +189,15 @@ class CarboSem extends React.Component {
         /*
          * rendering ledger elements as per their current states
          */
-        if (this.ledger["elements"].length > 0) {
+        if (ledger["elements"].length > 0) {
             var addedLedger = d3.select(".form-group").append("div").attr("class", "checkbox").attr("id", semDivAddedLedger).style(
                 "display", "inline");
             var beginledger = addedLedger.append("label").text("{")
                 .style("color", "floralwhite")
                 .style("padding-left", "10px");
             var addedLedgerElements = [];
-            for (var i = 0; i < this.ledger["elements"].length; i++) {
-                addedLedgerElements[i] = addedLedger.append("label").text(this.ledger["elements"][i] + (i < this.ledger["elements"].length - 1 ? ", " : "")).style("color", this.ledger["colors"][i]);
+            for (var i = 0; i < ledger["elements"].length; i++) {
+                addedLedgerElements[i] = addedLedger.append("label").text(ledger["elements"][i] + (i < ledger["elements"].length - 1 ? ", " : "")).style("color", ledger["colors"][i]);
             }
             var endLedger = addedLedger.append("label").text("}")
                 .style("color", "floralwhite");
@@ -218,57 +209,15 @@ class CarboSem extends React.Component {
         var width = window.innerWidth,
             height = (90 * window.innerHeight) / 100;
 
-        var canvas = document.querySelector(canvas),
-            context = canvas.getContext("2d");
-        canvas.width = width;
-        canvas.height = height;
-
-        /*
-         * configure simulation settings
-         */
-        var simulation = d3.forceSimulation()
-            .force("link", d3.forceLink().distance(10).strength(1))
-            .force("charge", d3.forceManyBody())
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force('x', d3.forceX(width / 2).strength(width > height ? 0.1 : 0.25))
-            .force('y', d3.forceY(height / 2).strength(width > height ? 0.25 : 0.1));
-
-
-        /*
-         * initiating the simulation renderer
-         */
-        simulation
-            .nodes(localGraph.nodes)
-            .on("tick", function () {
-                context.clearRect(0, 0, width, height);
-                localGraph.links.forEach(function (d) {
-                    context.beginPath();
-                    context.strokeStyle = this.checkbox["colors"][this.checkbox["vals"].findIndex(x => x == d.type)];
-                    context.moveTo(d.source.x, d.source.y);
-                    context.lineTo(d.target.x, d.target.y);
-                    context.stroke();
-                });
-                localGraph.nodes.forEach(function (d) {
-                    context.beginPath();
-                    context.fillStyle = ledger["colors"][ledger["elements"].findIndex(x => x == d.label)];
-                    d.x = Math.max(5, Math.min(width - 5, d.x));
-                    d.y = Math.max(5, Math.min(height - 5, d.y));
-                    context.moveTo(d.x, d.y);
-                    context.arc(d.x, d.y, 5, 0, 2 * Math.PI);
-                    context.fillText(d.renderedText != null ? d.renderedText : "", d.x + 5, d.y + 5);
-                    context.fill();
-                });
-            });
-
-        simulation.force("link")
-            .links(localGraph.links);
+        var canvas = document.querySelector(semCanvas),
+                    context = canvas.getContext("2d");
 
         /*
          * changing background parameters of elements as per mouse drag
          */
         d3.select(canvas)
             .call(d3.drag()
-                .container(node)
+                .container(semCanvas)
                 .subject(function () {
                     return simulation.find(d3.event.x, d3.event.y);
                 })
@@ -290,19 +239,85 @@ class CarboSem extends React.Component {
                     d3.event.subject.fx = null;
                     d3.event.subject.fy = null;
                 }));
+
+
+            /*
+             * configure simulation settings
+             */
+            var simulation = d3.forceSimulation()
+                .force("link", d3.forceLink().distance(10).strength(1))
+                .force("charge", d3.forceManyBody())
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force('x', d3.forceX(width / 2).strength(width > height ? 0.1 : 0.25))
+                .force('y', d3.forceY(height / 2).strength(width > height ? 0.25 : 0.1));
+
+
+            /*
+             * initiating the simulation renderer
+             */
+            simulation
+                .nodes(localGraph.nodes)
+                .on("tick", function () {
+                    context.clearRect(0, 0, width, height);
+                    localGraph.links.forEach(function (d) {
+                        context.beginPath();
+                        context.strokeStyle = checkbox["colors"][checkbox["vals"].findIndex(x => x == d.type)];
+                        context.moveTo(d.source.x, d.source.y);
+                        context.lineTo(d.target.x, d.target.y);
+                        context.stroke();
+                    });
+                    localGraph.nodes.forEach(function (d) {
+                        context.beginPath();
+                        context.fillStyle = ledger["colors"][ledger["elements"].findIndex(x => x == d.label)];
+                        d.x = Math.max(5, Math.min(width - 5, d.x));
+                        d.y = Math.max(5, Math.min(height - 5, d.y));
+                        context.moveTo(d.x, d.y);
+                        context.arc(d.x, d.y, 5, 0, 2 * Math.PI);
+                        context.fillText(d.renderedText != null ? d.renderedText : "", d.x + 5, d.y + 5);
+                        context.fill();
+                    });
+                });
+
+            simulation.force("link")
+                .links(localGraph.links);
     });
     this.props.animateFauxDOM(800)
   }
 
   render () {
-    $("#search").submit(this.submitQuery());
-    $("#search").submit(this.drawGraph());
     return (
-            <div className="suggar">
-              {this.props.semCanvas}
+      <main className="main">
+            <nav className="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+                    <a className="navbar-brand" href="/">Carbon Semantics</a>
+                    <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#targetNavBar" aria-controls="targetNavBar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <div className="collapse navbar-collapse customCollapse" id="targetNavBar">
+                          <form role="search" className="form-inline mt-2 mt-md-0" id="search" onSubmit={ this.drawGraph }>
+                                <input type="text" value="" placeholder="Search for Sequences" className="form-control mr-sm-2" name="search"/>
+                                <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                          </form>
+                    </div>
+                    <div>
+                       {this.props.semDivAddedCheckbox}
+                    </div>
+                    <div>
+                       {this.props.semDivAddedLedger}
+                    </div>
+            </nav>
+            <div>
+               {this.props.semCanvas}
             </div>
+          <footer className="bg-dark fixed-bottom custom-footer">
+              Copyright &copy; 2018 Aly Shmahell
+              <a href="https://github.com/CarboSem">
+                  <i className="fa fa-github" aria-hidden="true">
+                  </i>
+              </a>
+          </footer>
+        </main>
         );
- }
+    }
 }
 
 CarboSem.defaultProps = {
