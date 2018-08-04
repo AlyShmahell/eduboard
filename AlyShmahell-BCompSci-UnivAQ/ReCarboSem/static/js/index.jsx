@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import CarboSem from "./CarboSem";
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./app";
 
-ReactDOM.render(<CarboSem />, document.getElementById("content"));
+ReactDOM.render(<App />, document.getElementById("content"));
