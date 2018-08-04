@@ -98,7 +98,7 @@ $(function() {
              * rendering checkboxes as per their current states
              */
       var addedCheckbox = d3
-        .select(".form-group")
+        .select(".form-inline")
         .append("div")
         .attr("class", "checkbox")
         .attr("id", "addedCheckbox");
@@ -108,7 +108,8 @@ $(function() {
         .append("label")
         .text("{")
         .style("color", "floralwhite")
-        .style("padding-right", "10px");
+        .style("padding-right", "10px")
+        .style("margin-left", "10px");
       for (var i = 0; i < checkbox["states"].length; i++) {
         addedLabels[i] = addedCheckbox
           .append("label")
@@ -218,16 +219,14 @@ $(function() {
              */
       if (ledger["elements"].length > 0) {
         var addedLedger = d3
-          .select(".form-group")
+          .select(".form-inline")
           .append("div")
           .attr("class", "checkbox")
-          .attr("id", "addedLedger")
-          .style("display", "inline");
+          .attr("id", "addedLedger");
         var beginledger = addedLedger
           .append("label")
           .text("{")
-          .style("color", "floralwhite")
-          .style("padding-left", "10px");
+          .style("color", "floralwhite");
         var addedLedgerElements = [];
         for (var i = 0; i < ledger["elements"].length; i++) {
           addedLedgerElements[i] = addedLedger
@@ -236,7 +235,8 @@ $(function() {
               ledger["elements"][i] +
                 (i < ledger["elements"].length - 1 ? ", " : "")
             )
-            .style("color", ledger["colors"][i]);
+            .style("color", ledger["colors"][i])
+            .style("padding", "10px");;
         }
         var endLedger = addedLedger
           .append("label")

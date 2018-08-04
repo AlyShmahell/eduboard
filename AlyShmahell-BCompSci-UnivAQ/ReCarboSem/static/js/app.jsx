@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 import React from "react";
+import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "jquery/dist/jquery.min.js";
 import * as Popper from "popper.js";
