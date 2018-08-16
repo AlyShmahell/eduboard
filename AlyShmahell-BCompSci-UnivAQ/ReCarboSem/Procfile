@@ -1,2 +1,2 @@
-release: cd static && npm install
+release: cd static && apt install nodejs && npm install
 web: python server.py
