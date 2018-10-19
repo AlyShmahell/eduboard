@@ -20,6 +20,8 @@
   },
   "homepage": "https://github.com/AlyShmahell/ReCarboSem#readme",
   "devDependencies": {
+    "chroma-js": "^1.3.6",
+    "d3": "^5.0.0",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
@@ -36,7 +38,8 @@
   },
   "babel": {
     "presets": [
-      "react"
+      "react",
+      "stage-0"
     ]
   },
   "dependencies": {

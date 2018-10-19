@@ -26,9 +26,10 @@ def js(filename):
 def json(filename):
     return static_file(filename, root='static/json')
 
-@route('/getJSON')
+@route('/getJSON', method="GET")
 def getJSON():
-    return static_file('data.json', root='database')
+    file_name = request.query["filename"]
+    return static_file(file_name, root='database')
 
 if os.environ.get('APP_LOCATION') == 'heroku':
     run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

@@ -10,8 +10,6 @@
     <meta property="og:url" content="https://carbosem.herokuapp.com/" />
     <link rel="icon" href="static/images/favicon.ico" type="image/x-icon" />
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="//d3js.org/d3.v4.min.js"></script>
-    <script type="text/javascript" src="static/js/carbosem.js"></script>
     <title>Carbon Semantics</title>
   </head>
   <body>
