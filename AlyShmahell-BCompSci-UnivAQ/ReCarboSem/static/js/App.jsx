@@ -14,9 +14,12 @@ class App extends Component {
     this.state = {
       data: {},
       searchParameter: 'data.json',
+      width: 0,
+      height: 0,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.updateSearchParameter = this.updateSearchParameter.bind(this);
+    this.updateDimensions = this.updateDimensions.bind(this);
   }
 
   handleSubmit(event) {
@@ -32,6 +35,14 @@ class App extends Component {
         if (data)
           this.setState({ data: data });
       });
+  }
+
+  updateDimensions() {
+    this.setState({width: $(window).width(), height: $(window).height()});
+  }
+
+  componentDidMount(){
+    window.addEventListener("resize", this.updateDimensions);
   }
 
   updateSearchParameter(updatedSearchParameter) {
