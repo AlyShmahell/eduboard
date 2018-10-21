@@ -89,8 +89,8 @@ class App extends Component {
         <CarboSem data={data} />
         <footer className="bg-dark fixed-bottom custom-footer">
           Copyright &copy; 2018 Aly Shmahell
-              <a href="https://github.com/CarboSem">
-            <i className="fa fa-github" aria-hidden="true" />
+          <a href="https://github.com/AlyShmahell/ReCarboSem" target="_blank">
+              <i className="fab fa-github"></i>
           </a>
         </footer>
       </main>
