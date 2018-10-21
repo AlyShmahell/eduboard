@@ -53,7 +53,10 @@ function submitQuery() {
 }
 
 function drawGraph(data) {
-    
+    if(data.nodes === undefined){
+        console.log("data nodes are undefined");
+        return;
+    }
     /*
      * resetting the ledger area
      */
@@ -327,12 +330,16 @@ function drawGraph(data) {
                 d3.event.subject.fy = null;
             })
     );
+    return;
 }
 
 angular.module('ngApp', [])
-    .controller('ngController', ["$scope", function ($scope) {
+    .controller('ngController', ['$scope', '$window', function($scope, $window) {
         $scope.ngFileName = "data.json";
-
+        $scope.data = {"nodes": undefined};
+        angular.element($window).on('resize', function(){
+            drawGraph($scope.data);
+        });
         $scope.ngSubmit = function () {
             fetch('/getJSON?' + $.param({ filename: $scope.ngFileName }))
                 .then((response) => {
@@ -340,9 +347,8 @@ angular.module('ngApp', [])
                         return response.json()
                 })
                 .then(data => {
-                    console.log(data);
-                    console.log('ha');
                     if (data) {
+                        $scope.data = data;
                         submitQuery();
                         drawGraph(data);
                     }
