@@ -15,6 +15,9 @@ sudo wget "http://www.adminer.org/latest.php" -O /usr/share/adminer/latest.php
 sudo ln -s /usr/share/adminer/latest.php /usr/share/adminer/adminer.php
 echo "Alias /adminer.php /usr/share/adminer/adminer.php" | sudo tee /etc/apache2/conf-available/adminer.conf
 sudo a2enconf adminer.conf
-sudo service apache2 restart # now to use adminer, visit the following url: http://127.0.0.1/adminer.php
+sudo service apache2 restart # now to use adminer, visit the following url: http://127.0.0.1/adminer.php  
+
+# setup mysql-server to connect with mysql-workbench
+sudo mysql -u root -p password -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';"
 
 
