@@ -1,0 +1,14 @@
+*.bak
+_minted-NavibusMercatoriis/
+_minted-NavibusMercatoriis
+*.aux
+*.log
+*.out
+*.synctex.gz
+**/*.bak
+**/_minted-NavibusMercatoriis/
+**/_minted-NavibusMercatoriis
+**/*.aux
+**/*.log
+**/*.out
+**/*.synctex.gz

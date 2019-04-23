@@ -9,7 +9,7 @@ footskip=.25in]{geometry}
 \usepackage{xcolor}
 \usepackage{pdfpages}
 \usepackage{graphicx}
-\graphicspath{{../images/}}
+\graphicspath{{./graphics/}}
 \usepackage{textcomp}
 \usepackage{hyperref}
 \usepackage{dirtree}
@@ -161,10 +161,10 @@ As we can see in the table of accesses, the \textbf{Routes} table is accessed ve
 Also, the \textbf{ownShips} table is accessed as frequently as the \textbf{Ships} table, but poses another un-necessary structural redundancy, therefor should be deleted and substituted with a binary attribute \textbf{"isOwn"} in the \textbf{Ships} table.
 \newpage
 \section*{Physical Schema - MySQL Code (Tables, Constraints, Triggers, Procedures)}
-\inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{../../MySQL Code/AlyShmahell-mercantileShips.sql}
+\inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{../src/NavibusMercatoriis.sql}
 \newpage
 \section*{Tool setup on Ubuntu 16.04 (Bash File)}
-\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{../../prerequisites.sh}
+\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{../src/prerequisites.sh}
 \newpage
 \begin{flushleft}
 	\section*{\textbf{Code Repository}}
@@ -173,12 +173,12 @@ Also, the \textbf{ownShips} table is accessed as frequently as the \textbf{Ships
 	A Github repository exists for this project under:\\
 \end{flushleft}
 	\begin{center}
-		\url{https://github.com/AlyShmahell/Navibus-Mercatoriis}
+		\url{https://github.com/AlyShmahell/NavibusMercatoriis}
 	\end{center}
 \begin{thebibliography}{}
-\bibitem {MySQL 5.7 Reference Manual}
-\textbf{MySQL 5.7 Reference Manual}: https://downloads.mysql.com/docs/refman-5.7-en.a4.pdf
-\bibitem {MySQL Workbench 6.3 Reference Manual}
-\textbf{MySQL Workbench 6.3 Reference Manual:} https://downloads.mysql.com/docs/workbench-en.a4.pdf
+	\bibitem {MySQL 5.7 Reference Manual}
+		\textbf{MySQL 5.7 Reference Manual}: https://downloads.mysql.com/docs/refman-5.7-en.a4.pdf
+	\bibitem {MySQL Workbench 6.3 Reference Manual}
+		\textbf{MySQL Workbench 6.3 Reference Manual:} https://downloads.mysql.com/docs/workbench-en.a4.pdf
 \end{thebibliography}
 \end{document}
