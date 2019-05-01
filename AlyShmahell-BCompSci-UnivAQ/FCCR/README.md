@@ -24,3 +24,6 @@ sudo apt install mysql-server php php-mysqli php-mysql python3.6
     ```sh
     sudo ./run -host <address> -port <port_number>
     ```
+
+## Initial Purpose:
+a final project for the course of Web Technologies at University of L'Aquila (UNIVAQ).
