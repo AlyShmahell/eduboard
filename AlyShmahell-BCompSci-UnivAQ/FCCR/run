@@ -1,0 +1,3 @@
+#!/bin/bash
+
+(cd src/site && sudo php -S localhost:5000)
