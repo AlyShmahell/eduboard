@@ -1,4 +1,6 @@
 # FCCR : Federal Corporate Claim Registry
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)]()
+[![Deprecated](https://github.com/AlyShmahell/AlyShmahell-GraphicDesign/blob/master/deprecated.svg)]()
 
 a PHP7/MySQL website that simulates a claim registry where companies (users) can register their asset claims and officials (admins) can inspect these assets.  
 
