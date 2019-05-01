@@ -6,11 +6,11 @@ import argparse
 
 if __name__ == '__main__':
     parser  = argparse.ArgumentParser()
-    parser .add_argument("-host", type=str, help="configure host")
-    parser .add_argument("-port", type=str, help="configure port")
-    parser .add_argument("-db", type=str, help="configure mysql database")
-    parser .add_argument("-u", type=str, help="configure mysql user")
-    parser .add_argument("-p", type=str, help="configure mysql user")
+    parser.add_argument("-host", type=str, help="configure host")
+    parser.add_argument("-port", type=str, help="configure port")
+    parser.add_argument("-db", type=str, help="configure mysql database")
+    parser.add_argument("-u", type=str, help="configure mysql user")
+    parser.add_argument("-p", type=str, help="configure mysql user")
     args = parser .parse_args()
     with open("./src/site/includes/mysql_credentials.txt", "w") as credentials:
         credentials.write(f"host: {args.host} username: {args.u} password: {args.p} database: {args.db} port: {args.port}")

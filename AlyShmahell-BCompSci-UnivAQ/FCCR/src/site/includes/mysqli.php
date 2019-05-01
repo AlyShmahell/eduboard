@@ -36,6 +36,6 @@ foreach($lines as $line) {
     $port = array_pop($port);
 }
 
-$connection     = new mysqli($host, $username, $password, $database);
+$connection = new mysqli($host, $username, $password, $database);
 
 ?>
