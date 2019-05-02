@@ -1,7 +1,7 @@
-\documentclass[12pt]{scrartcl}
-\usepackage[a4paper,bindingoffset=0.2in,%
-left=0.5in,right=0.5in,top=1in,bottom=1in,%
-footskip=.25in]{geometry}
+\documentclass[10pt]{report}
+\usepackage[a4paper,bindingoffset=0.2in,
+			left=0.5in,right=0.5in,top=1in,bottom=1in,
+			footskip=.25in]{geometry}
 \usepackage[affil-it]{authblk}
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
@@ -15,13 +15,77 @@ footskip=.25in]{geometry}
 \usepackage{dirtree}
 \usepackage{minted}
 \usepackage{footnotebackref}
+\usepackage{amsmath}
+\usepackage{ragged2e}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{1.0,1.0,1.0}
 
+%% Title Definition Packages & Commands %%
+\usepackage{titlesec}
+\titleformat
+{\chapter}
+[display]
+{\bfseries\LARGE}
+{Chapter \thechapter}
+{0pt}
+{
+	\rule{\textwidth}{1pt}
+	\centering
+}
+[
+\rule{\textwidth}{0.3pt}
+]
+\titlespacing{\chapter}{0pt}{10pt}{10pt}
+
+\renewcommand{\paragraph}[1]{\paragraph{#1}\mbox{}\\}
+%%%%
+%% Box Packages & Commands %%
+\usepackage{lmodern}
+\usepackage[most]{tcolorbox}
+\usepackage{tabularx}
+\usepackage{colortbl} 
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newtcolorbox[blend into=tables]{colortable}[2][]{
+	colback=white,
+	tabularx*={\renewcommand{\arraystretch}{1.0}}{Y|Y|Y|Y|Y|Y},title={#2},boxrule=0.8pt, center title
+}
+\newtcolorbox[blend into=figures]{blockfigure}[2][]
+{
+	colback=white,
+	float=!htbp,
+	boxsep=1pt,
+	left=1pt,
+	right=1pt,
+	top=1pt,
+	bottom=1pt,
+	center title,
+	%%lifted shadow={1mm}{-2mm}{3mm}{0.1mm}{black!50!white},
+	title={#2},
+	every float=\centering,
+	#1
+}
+\newtcolorbox[blend into=figures]{inlinefigure}[2][]
+{
+	colback=white,
+	boxsep=0.5pt,
+	left=1pt,right=1pt,
+	top=1pt,
+	bottom=1pt,
+	center title,
+	%%lifted shadow={1mm}{-2mm}{3mm}{0.1mm}{black!50!white},
+	title={#2},
+	every float=\centering,
+	#1
+}
+%%%%
+
 \newcommand{\folder}[2]{}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
 
 \makeatletter
 \newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
@@ -43,69 +107,136 @@ footskip=.25in]{geometry}
 
 \lstset{style=mystyle}
 \begin{document}
-	\title{%
-		Mercantile Ships
-	}
-	\author{Aly Shmahell\\%
-		\href{aly.shmahell@gmail.com}{aly.shmahell@gmail.com}
-	}
-	\affil{%
-		3rd Year Student\\
-		Department of Computer Science, University of L'Aquila\\
-		Databases - Lab Module\\
-		Prof. Pierluigi Pierini
-		}
-	\date{Jan 9th 2018}
+	\begin{titlepage}
+		\begin{center}
+			\includegraphics[width=0.6\textwidth]{UnivAQ-logo}\\[1cm]
+			{\LARGE University of L'Aquila}\\[0.5cm]
+			{\large Department of Information Engineering, Computer Science and Mathematics}\\[0.5cm]
+			\rule{\linewidth}{0.5mm} \\[0.4cm]
+			{\huge \bfseries NavibusMercatoriis:\\ A Database for a Mercantile Shipping Company \\[0.4cm] }
+			\rule{\linewidth}{0.5mm} \\[0.1cm]
+			\noindent
+			{\large  \textsc{Databases - Lab Module - Final Project}
+				\vspace{-0.04cm} \\[0.01cm] }
+			\rule{\linewidth}{0.5mm} \\[0.1cm]
+			\noindent
+			\begin{tcbraster}[raster columns=2,raster rows=1,
+				enhanced,size=small,fit algorithm=hybrid* ]
+				\begin{tcolorbox}[
+					colback=white,
+					sharp corners = northwest,
+					title={Student}
+					]
+					\large
+					\emph{Name :} \\[0.2cm]
+					\tab Aly \textsc{Shmahell}\\[0.2cm]
+				\end{tcolorbox}
+				\begin{tcolorbox}[
+					colback=white,
+					sharp corners = northwest,
+					title = {Supervisor}
+					]
+					\large
+					\emph{Name :} \\[0.2cm]
+					\tab Prof.~Pierluigi \textsc{Pierini}\\[0.2cm]
+				\end{tcolorbox}
+			\end{tcbraster}
+			\vfill
+			Jan 9th 2018
+		\end{center}
+	\end{titlepage}
+\chapter*{Abstract}
+\begin{center}
+	\begin{minipage}{0.8\textwidth}
+		\justify
+		As part of a lab course on databases, I, the student, was tasked with designing a database for a mercantile shipping company, starting from specifications given by the supervisor, according to industry standards. In this document I showcase the four stages of design, along with the design decisions that are made beforehand. Great care is given into finding optimal solutions, but in some extreme cases a local optima is chosen for conformity purposes (the solution conforms best to the design stage), for practicality or for highlighting the optimal solution.
+	\end{minipage}
+	\vfill
+	\begin{minipage}{0.8\textwidth}
+		\begin{center}
+			\url{https://github.com/AlyShmahell/NavibusMercatoriis}
+		\end{center}
+	\end{minipage}
+\end{center}
+		
+\newpage
+\chapter*{Design Decisions}
+
+\begin{colortable}{Design Tool}
+	\textbf{Question} & Which design tool to choose? \\\hline
+	\textbf{Options} & \begin{itemize} 
+							\item Dia  
+							\item MySQL Workbench
+						\end{itemize} \\\hline
+	\textbf{Criteria} & \begin{itemize} 
+							\item being up to date  
+							\item offering ER models
+						\end{itemize} \\\hline
+	\textbf{Evaluation}  & \begin{itemize}
+								\item MySQL Workbench satisfies both criteria, it also comes equipped with SQL scripting, python scripting, SQL database connection, and an SQL linter/debugger.
+								\item Dia is outdated and lacks features.
+							\end{itemize}  \\\hline
+	\textbf{Choice} &  MySQL Workbench
+\end{colortable}
+
+\begin{colortable}{Testing Tool}
+	\textbf{Question} & Which testing tool to choose? \\\hline
+	\textbf{Options} & \begin{itemize} 
+		\item phpmyadmin  
+		\item adminer
+	\end{itemize} \\\hline
+	\textbf{Criteria} & \begin{itemize} 
+		\item being up to date.
+		\item offering PL/SQL support.
+	\end{itemize} \\\hline
+	\textbf{Evaluation}  & \begin{itemize}
+		\item adminer satisfies both criteria.
+		\item phpmyadmin lacks proper support for delimiters in stored procedures.
+	\end{itemize}  \\\hline
+	\textbf{Choice} &  adminer
+\end{colortable}
+
+
+\newpage
+\chapter*{Stage 1: Conceptual Design}
+\begin{normalsize}
+	For the Conceptual Schema I used Crow's Foot notation, mainly because it is the one adopted by the CASE tool I chose (MySQL WorkBench).\\
 	
-	\maketitle	
-	\newpage
+	With this notation, relationships cannot have attributes. When necessary, relationships are promoted to entities. However, when relationships are not promoted to entities, they represent external identifiers as foreign key or index attributes which become present in both entities on the left and right hand side.\\
+	
+	This results in the following:
+	\begin{itemize}
+		\item adaptation of external identifiers into foreign keys early on in the conceptual design stage.
+		\item selection of primary identifiers can also be done in the conceptual design stage.
+		\item many-to-many relationships are replaced with entities in the conceptual design stage.
+	\end{itemize}
+\end{normalsize}
+
+\begin{blockfigure}{Conceptual ERD with Crow's Foot (IE) Notation}
 	\begin{center}
-		\section*{\hfil \hfil  Abstract \hfil }
+		\includegraphics[trim=0cm 8cm 0cm 1cm,clip=true, width=.6\textwidth]{mercantileShips-Conceptual.pdf}
 	\end{center}
-		In this document I will showcase the 3 stages of design of the "Mercantile Ships" Database.\\
-		In this effort, and under permission from the requirements file, I made some decisions regarding the techniques and tools used in the design process.\\
-		In some extreme cases I had to settle for a less than optimal solution either for conformity purposes (the solution conforms best to the design stage) or for practicality, or for highlighting the optimal solution.\\
+\end{blockfigure}
+
+\chapter*{Stage 2: Logical Design}
+\begin{center}
+	\includegraphics[trim=0cm 4cm 0cm 0cm,clip=true,height=.85\textheight, width=\textwidth]{DataDictionary1.pdf}
+\end{center}
 \newpage
-\section*{\textbf{Design and Tool Choices}}
-Having Ubuntu linux as my main operating system, I had a small set of tools to choose from, the obvious ones anyways.\\
-For the Conceptual Schema, Dia was the most suggested on general forums, but it is highly outdated and full of bugs (as tested on my system), also it didn't offer any integrated features.\\
-
-This is why I chose \textbf{MySQL Workbench}, it comes the most recommended from DB professionals, doesn't offer ER design capability, but better, it comes equipped with an EER designer, it offers backward engineering, forward engineering, SQL scripting, python scripting, SQL database connection, and with its SQL linter/debugger, the three stages of the DB design get improved live and professionally.\\
-
-One note on MySQL Workbench, on its default settings, it only cares about relationships that translate into Foreign Keys, all other operations can be added as SQL routines(procedures)/triggers/scripts. Which makes sense, because this is how we actually translate from Conceptual Design to Logical Design.\\
-But, the EER model in MySQL Workbench can be tweaked a little if someone wants to to add non-key-type relations. However, I chose to stick with the defaults.\\
-
-Final note, MySQL Workbench provides both Conceptual EERD and Logical EERD: the first being offered with Crow's Foot Notation, the second with "Matching Columns to Columns" to simulate a graphical logical schema.\\
-
-There are some other tools which I found (rather late), like draw.io, it's just a modeling tool, much like Dia, but it is more up to date and it has some nice features like adding your own shape (you have to script it in xml) so you can represent any special types of entities or relationships that are not present in the default palette.\\
-Also, initially I only looked for tools concerning MySQL, but after doing a big portion of the project, I discovered pgModeler for PostgreSQL, which would have been better in terms of Conceptual Design because it represents non-key-type relations more out of the box and much better.\\
-
-For testing the database I initially used phpMyAdmin, but due to its lack of proper support for delimiters in stored procedure I had to switch to \textbf{Adminer}.\\
-
-As for the documentation, nothing beats \textbf{Latex} and \textbf{texstudio}!
-
+\begin{center}
+	\includegraphics[trim=2cm 10cm 0cm 0cm,clip=true, height=.85\textheight, width=\textwidth]{BusinessRules.pdf}
+\end{center}
 \newpage
-\section*{\normalsize{Conceputal Schema}}
-In this schema I used Crow's Foot notation, mainly because it is the one adopted by the two CASE tools I used (MySQL WorkBench, draw.io).\\
-
-With this notation, relationships cannot have attributes. Where necessary, relationships are promoted to entities in their own right. Where relationships are not promoted to entities, they represent external identifiers as foreign key or index attributes present in both entities on the left and right hand side.\\
-
-This results in the following:
-\begin{itemize}
-	\item adaptation of external identifiers into foreign keys early on in the conceptual design stage.
-	\item selection of primary identifiers can also be done in the conceptual design stage.
-	\item many-to-many relationships are replaced with entities right in the conceptual design stage.
-\end{itemize}
-\includepdf[width=\textwidth, height=\textheight, pagecommand={\section*{\normalsize{Conceptual ERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{mercantileShips-Conceptual.pdf}
+\begin{center}
+	\includegraphics[trim=1cm 3cm 2cm 0cm,clip=true, height=.85\textheight, width=\textwidth]{Volumes.pdf}
+\end{center}
 \newpage
-\includepdf[pagecommand={\thispagestyle{empty}}]{DataDictionary1.pdf}
+\begin{center}
+	\includegraphics[trim=2cm 12cm 9cm 0cm,clip=true, height=.85\textheight, width=\textwidth]{Accesses.pdf}
+\end{center}
 \newpage
-\includepdf[pagecommand={\thispagestyle{empty}}]{BusinessRules.pdf}
-\newpage
-\section*{\normalsize{From ER to Relational Model}}
-During the Conceptual design stage I made sure to analyze and reduce redundancies as I was constructing the entities, I also made sure no entity crossed with another and therefor there was no need for collapse or merger of entities (except for the route entity which I alerted to its presence in the \hyperlink{page.13}{Notes on Efficiency} section).\\
-
-The only thing left to do was removal of a generalization, which I chose to do it following the \textbf{"Substitution of the generalization with relationships"} method.\\
+\chapter*{Stage 3: Normalization}
+Removal of a generalizations was done following the \textbf{"Substitution of the generalization with relationships"} method.\\
 
 The resulting translated tables were as the following:
 \begin{flushleft}
@@ -127,8 +258,7 @@ The resulting translated tables were as the following:
 	Ports(\textit{missionNo}, portCoordinates, departureArrival, portingDate, effectivelyPorted)\footnoteref{italic1}\\
 	Points(\textit{missionNo}, coordinates, expectedCrossing, effectiveCrossing)\footnoteref{italic1}\\
 \end{flushleft}
-\newpage
-The resulting translated foreign key relations were as the following:
+The resulting translated foreign key relations are as the following:
 \begin{flushleft}
 	\verb|fk_rentalContracts_rentalCompanies1|(rentalContracts.rentalCompanyIVA, rentalCompanies.rentalCompanyIVA)\\
 	\verb|fk_rentalContracts_rentalShips1|(rentalContracts.IMO, rentalShips.IMO)\\
@@ -147,34 +277,28 @@ The resulting translated foreign key relations were as the following:
 	\verb|fk_Ports_Routes1|(Ports.missionNo, Routes.missionNo)\\
 	\verb|fk_Points_Routes1|(Points.missionNo, Routes.missionNo)\\
 \end{flushleft}
-\newpage
-\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Relational EERD with Crow's Foot (IE) Notation}} \thispagestyle{empty}}]{MercantileShips-EER.pdf}
-\newpage
-\includepdf[width=\textwidth, height=\textheight - 220pt, pagecommand={\section*{\normalsize{Logical EERD with Column Matching Notation }} \thispagestyle{empty}}]{MercantileShips-EER-Column.pdf}
-\newpage
-\includepdf[pagecommand={\thispagestyle{empty}}]{Volumes.pdf}
-\newpage
-\includepdf[pagecommand={\thispagestyle{empty}}]{Accesses.pdf}
-\subsection*{Notes on Efficiency}
+\textbf{Notes on Efficiency}\\
 As we can see in the table of accesses, the \textbf{Routes} table is accessed very rarely, and it imposes an un-necessary structural redundancy (only contains missionNo), therefor should be deleted and substituted with the \textbf{"missionNo"} attribute in the \textbf{Missions} table.\\
-
 Also, the \textbf{ownShips} table is accessed as frequently as the \textbf{Ships} table, but poses another un-necessary structural redundancy, therefor should be deleted and substituted with a binary attribute \textbf{"isOwn"} in the \textbf{Ships} table.
 \newpage
-\section*{Physical Schema - MySQL Code (Tables, Constraints, Triggers, Procedures)}
+
+\begin{inlinefigure}{Relational EERD with Crow's Foot (IE) Notation}
+	\begin{center}
+		\includegraphics[height=\textheight, width=\textwidth]{MercantileShips-EER.pdf}
+	\end{center}
+\end{inlinefigure}
+\newpage
+\begin{inlinefigure}{Logical EERD with Column Matching Notation }
+	\begin{center}
+		\includegraphics[height=\textheight, width=\textwidth]{MercantileShips-EER-Column.pdf}
+	\end{center}
+\end{inlinefigure}
+
+
+\newpage
+\chapter*{Stage 4: Physical Schema}
 \inputminted[breaklines=true, fontsize=\footnotesize]{mysql}{../src/NavibusMercatoriis.sql}
 \newpage
-\section*{Tool setup on Ubuntu 16.04 (Bash File)}
-\inputminted[breaklines=true, fontsize=\footnotesize]{bash}{../src/prerequisites.sh}
-\newpage
-\begin{flushleft}
-	\section*{\textbf{Code Repository}}
-\end{flushleft}
-\begin{flushleft}
-	A Github repository exists for this project under:\\
-\end{flushleft}
-	\begin{center}
-		\url{https://github.com/AlyShmahell/NavibusMercatoriis}
-	\end{center}
 \begin{thebibliography}{}
 	\bibitem {MySQL 5.7 Reference Manual}
 		\textbf{MySQL 5.7 Reference Manual}: https://downloads.mysql.com/docs/refman-5.7-en.a4.pdf
