@@ -1,5 +1,5 @@
 # NavibusMercatoriis
-A Database for a Mercantile Shipping Company, designed with MySQL Workbench, implemented in SQLPL.
+a database for a mercantile shipping company, designed with MySQL Workbench, implemented in SQLPL.  
 
 ## Installation & Usage
 ```sh
@@ -18,6 +18,7 @@ cd NavibusMercatoriis
     $ ./setup_user -u <mysql_username> -p <mysql_user_password>
     $ sudo mysql -u <mysql_username> -p<mysql_user_password>
     mysql> use `Mercantile Ships`;
-    ```
+    ```  
+
 ## Initial Aim
 a final project for the Databases Lab course at University of L'Aquila (UNIVAQ).
