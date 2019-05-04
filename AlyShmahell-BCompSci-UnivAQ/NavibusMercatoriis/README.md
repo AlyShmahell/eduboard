@@ -1,5 +1,5 @@
 # NavibusMercatoriis
-A Database for a Mercantile Shipping Company, designed with MySQL Workbench, implemented in PL/SQL.
+A Database for a Mercantile Shipping Company, designed with MySQL Workbench, implemented in SQLPL.
 
 ## Installation & Usage
 ```sh
