@@ -1,5 +1,6 @@
 import os
 import json
+from parser import parser
 from bottle import route, template, redirect, run, error, request, response, static_file
 
 @route('/')
@@ -23,13 +24,17 @@ def js(filename):
     return static_file(filename, root='static/js')
 
 @route('/static/json/<filename>')
-def json(filename):
+def staticjson(filename):
     return static_file(filename, root='static/json')
 
 @route('/getJSON', method="GET")
 def getJSON():
     file_name = request.query["filename"]
-    return static_file(file_name, root='database')
+    with open(f'database/{file_name}', 'r') as f:
+        graph = json.load(f)
+    res =  parser(graph['nodes'])
+    print(res)
+    return res
 
 if os.environ.get('APP_LOCATION') == 'heroku':
     run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
