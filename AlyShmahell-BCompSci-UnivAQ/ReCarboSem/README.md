@@ -9,3 +9,7 @@ cd webapp && pip3 install -r requirements.txt && cd static && npm install && cd 
 ```sh
 cd static && npm run build && cd .. && python3 server.py
 ```
+
+
+https://github.com/AlyShmahell/ReCarboSem/assets/6887917/e84dd9f4-f6c8-4311-bdf6-a971c61c7932
+
