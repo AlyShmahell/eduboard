@@ -1,0 +1,24 @@
+Metadata-Version: 1.1
+Name: neurencoder
+Version: TDPR1
+Summary: Hyper Heuristic Cryptography with Mixed Adversarial Nets
+Home-page: https://gitlab.com/AlyShmahell/AlyShmahell-Thesis
+Author: Aly Shmahell
+Author-email: aly.shmahell@gmail.com
+License: Copyright © 2018, Aly Shmahell. All rights reserved.
+Description: UNKNOWN
+Platform: Ubuntu 16.04
+Classifier: Development Status :: Thesis Defense PreRelease
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Academic Researchers
+Classifier: Intended Audience :: Industry Researchers
+Classifier: Programming Language :: Python :: 3 :: 5
+Classifier: Topic :: Artificial Intelligence :: Adeversarial Neural Networks
+Classifier: Topic :: Artificial Intelligence :: Convolutional Neural Networks
+Classifier: Topic :: Artificial Intelligence :: Transfer Learning
+Classifier: Topic :: Cyrptology :: Symmetric Cryptography
+Classifier: Topic :: Cyrptology :: Asymmetric Cryptography
+Classifier: Topic :: Cyrptology :: Hybrid Cryptography
+Classifier: Usage :: Standalone :: neurencoder -scheme [symmetric, asymmetric, hybrid]
+Classifier: Usage :: Library :: from neurencoder import *
