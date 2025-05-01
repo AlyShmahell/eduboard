@@ -1,0 +1,63 @@
+
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+
+
+.card {
+  z-index: 9999;
+  max-height: 50%;
+  border-radius: 2%;
+  overflow-y: hidden;
+  width: fit-content;
+  text-align: center;
+  vertical-align: middle;
+  display: grid;
+  grid-template-rows: 1fr 1fr 4fr 1fr;
+  grid-template-areas: "header" "search" "checkbox" "footer";
+
+}
+
+.header {
+  align-items: center;
+  grid-area: header;
+  text-align: center;
+  font-family: monospace;
+  font-size: large;
+  background-color: lightskyblue;
+}
+
+.title {
+  text-decoration: none;
+  color:orangered;
+}
+
+.search {
+  grid-area: search;
+  text-align: center;
+}
+
+.textbox {
+  border: 1px solid forestgreen;
+}
+
+.checkbox{
+  grid-area: checkbox;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  max-height: 100%;
+}
+
+.footer {
+  grid-area: footer;
+  text-align: center;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: small;
+  background-color: lightskyblue;
+}
