@@ -1,0 +1,50 @@
+<h1>Federal Corporation Claim Registry</h1>
+<h2>Administration Area</h2>
+<div><p> Welcome {{adminUser}} </p></div>
+<div>
+    <h3>Here are the corporations we have on record:</h3>
+    {{regularUsersTable}}
+</div>
+<div>
+    <h3> Corporation Inspection Form </h3>
+    <form method="post" name="inspectuserdata">
+        <label>corporation name &nbsp;</label>{{corporationSelect}}<br/>
+        <input type="submit">
+    </form>
+</div>
+<div>
+    <h3>Corporations Under Inspection</h3>
+    <p>
+        <b>{{inspectionTable}}</b>
+    </p>
+</div>
+<div>
+    <h3>Change Permissions</h3>
+    <form method="post" name="changePermissions">
+        <label>Group: &nbsp;</label>
+        <select name = "selectUserType">
+            <option value="usertype1">&nbsp; UserType1</option>
+            <option value="usertype2">&nbsp; UserType2</option>
+        </select>
+        <br>
+        <input name="accessType" type="radio" value="accessGranted"/>&nbsp; AccessGranted<br>
+        <input name="accessType" type="radio" value="accessDenied"/>&nbsp; AccessDenied<br>
+        <br>
+        <input type="submit"/>
+    </form>
+</div>
+<div>
+    <h3>Change Groups</h3>
+    <form method="post" name="changeGroups">
+        <label>Corporation: &nbsp;</label>
+        {{selectCorporation}}
+        <br>
+        <input name="setType" type="radio" value="usertype1"/>&nbsp; UserType1<br>
+        <input name="setType" type="radio" value="usertype2"/>&nbsp; UserType2<br>
+        <br>
+        <input type="submit"/>
+    </form>
+</div>
+<div>
+    <p><a href="/public/logout.php">Logout</a></p>
+</div>
