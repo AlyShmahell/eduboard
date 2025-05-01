@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import argparse
+
+if __name__ == '__main__':
+    parser  = argparse.ArgumentParser()
+    parser.add_argument("-u", type=str, help="mysql user")
+    parser.add_argument("-p", type=str, help="mysql password")
+    args = parser .parse_args()
+    os.system("sudo service mysql start")
+    os.system(f"sudo mysql -u {args.u} -p{args.p} < src/NavibusMercatoriis.sql")
