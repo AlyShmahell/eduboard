@@ -1,0 +1,24 @@
+{
+    "name": "alyshmahell/regina",
+    "description": "a PHP implementation of a simple web templating engine.",
+    "type": "library",
+    "license": "Copyright (c) 2017-2019 Aly Shmahell",
+    "authors": [
+        {
+            "name": "Aly Shmahell",
+            "email": "aly.shmahell@gmail.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {"php": ">=5.3"},
+    
+    "autoload": {
+        "psr-4": {
+            "Regina\\": "src/"
+        },
+        "psr-0":{
+            "Regina": "src/"
+        },
+        "classmap": ["src/"]
+    }
+}
