@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import argparse
+import subprocess
+
+
+if __name__ == '__main__':
+    parser  = argparse.ArgumentParser()
+    parser.add_argument("-u", type=str, help="mysql user")
+    parser.add_argument("-p", type=str, help="mysql password")
+    args = parser .parse_args()
+    os.system("sudo apt update")
+    os.system(f"sudo apt install apache2 php phpmyadmin mysql-server mysql-client mysql-workbench")
+    os.system(f"sudo service mysql start")
+    output = subprocess.check_output("grep -qF \"Include /etc/phpmyadmin/apache.conf\" /etc/apache2/apache2.conf", shell=True)
+    if not output:
+        os.system("sudo bash -c 'echo \"Include /etc/phpmyadmin/apache.conf\" >> /etc/apache2/apache2.conf'")
+    os.system("sudo systemctl restart apache2")
+    os.system("sudo mkdir /usr/share/adminer")
+    os.system("sudo wget \"http://www.adminer.org/latest.php\" -O /usr/share/adminer/latest.php")
+    os.system("sudo ln -s /usr/share/adminer/latest.php /usr/share/adminer/adminer.php")
+    os.system("echo \"Alias /adminer.php /usr/share/adminer/adminer.php\" | sudo tee /etc/apache2/conf-available/adminer.conf")
+    os.system("sudo a2enconf adminer.conf")
+    os.system("sudo service apache2 restart")
+    os.system(f"sudo mysql -u {args.u} -p{args.p} -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{args.p}';\"")

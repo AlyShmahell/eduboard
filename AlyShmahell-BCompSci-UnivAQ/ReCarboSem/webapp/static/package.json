@@ -1,0 +1,36 @@
+{
+  "name": "carbonsemantics",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "^5.3.1",
+    "d3": "^7.8.5",
+    "jquery": "^3.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "colormap": "^2.3.2",
+    "react-draggable": "^4.4.5"
+  },
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlyShmahell/ReCarboSem.git"
+  },
+  "author": "Aly Shmahell",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AlyShmahell/ReCarboSem/issues"
+  },
+  "homepage": "https://github.com/AlyShmahell/ReCarboSem#readme",
+  "devDependencies": {
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "@babel/preset-react": "^7.22.5",
+    "babel-loader": "^9.1.3",
+    "react-scripts": "^5.0.1",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}

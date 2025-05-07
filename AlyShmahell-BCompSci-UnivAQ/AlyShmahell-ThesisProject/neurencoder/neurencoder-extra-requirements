@@ -1,0 +1,30 @@
+#!/bin/bash
+{
+	# install nvidia drivers, cuda toolkit and required python package
+	sudo bash -c "echo 'deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /' > /etc/apt/sources.list.d/cuda.list" &&
+	sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub &&
+	sudo apt update &&
+	sudo apt install python2.7 python3.5 python-dev python-software-properties python-pip python-tk python3-dev python3-software-properties python3-pip python3-tk nvidia-390 nvidia-390-dev cuda-9-0 nvidia-cuda-dev nvidia-cuda-toolkit
+
+	# install cuDNN, obtained from : https://developer.nvidia.com/rdp/cudnn-download, after agreeing to the Software License Agreement
+	cudnn="averynonsensicaldirectory"
+	while [ ! -d $cudnn ]; do
+		echo "please proved the directory where you have:"
+		echo -e "\t libcudnn7_7.0.5.15-1+cuda9.0_amd64.deb"
+		echo -e "\t libcudnn7-dev_7.0.5.15-1+cuda9.0_amd64.deb"
+		echo -e "\t libcudnn7-doc_7.0.5.15-1+cuda9.0_amd64.deb"
+		read -p "" cudnn
+	done
+	sudo dpkg -i "$cudnn/libcudnn7_7.0.5.15-1+cuda9.0_amd64.deb" &&
+	sudo dpkg -i "$cudnn/libcudnn7-dev_7.0.5.15-1+cuda9.0_amd64.deb" &&
+	sudo dpkg -i "$cudnn/libcudnn7-doc_7.0.5.15-1+cuda9.0_amd64.deb"
+	
+	# setup environment variables
+	export PATH=/usr/local/cuda-9.0/bin${PATH:+:${PATH}} &&
+	export LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}} &&
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-9.0/extras/CUPTI/lib64 &&
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64 &&
+	export CUDA_HOME=/usr/local/cuda-9.0
+} || {
+	echo "Something went wrong, operation aborted"
+}
